@@ -15,6 +15,8 @@
 [![npm](https://img.shields.io/badge/npm-@sip--protocol/sdk-CB3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@sip-protocol/sdk)
 [![Docs](https://img.shields.io/badge/📚_Documentation-blue?style=for-the-badge)](https://docs.sip-protocol.org)
 
+**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) NEAR Track ($4,000)**
+
 *Shielded Intents • Stealth Addresses • Viewing Keys • Compliant Privacy*
 
 </div>
