@@ -196,6 +196,11 @@ const intent = await sip
 
 ## Why SIP?
 
+> **"Bridging tokens is easy, bridging secrets is hard."**
+> — [a16z Crypto, Big Ideas 2026](https://a16zcrypto.com/posts/article/big-ideas-things-excited-about-crypto-2026/)
+
+**SIP is the privacy layer that makes bridging secrets possible.**
+
 ### The Problem
 
 Cross-chain transactions are **public by default**:
