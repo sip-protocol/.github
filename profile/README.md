@@ -9,7 +9,7 @@
 ╚══════╝ ╚═╝ ╚═╝
 </pre>
 
-### Privacy Layer for Cross-Chain Transactions
+### THE Privacy Standard for Web3
 
 [![Website](https://img.shields.io/badge/🌐_sip--protocol.org-00C08B?style=for-the-badge)](https://sip-protocol.org)
 [![npm](https://img.shields.io/badge/npm-@sip--protocol/sdk-CB3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@sip-protocol/sdk)
@@ -25,7 +25,7 @@
 
 ## What is SIP?
 
-**SIP (Shielded Intents Protocol)** brings privacy to cross-chain transactions. One toggle to shield your sender, amount, and recipient—while maintaining compliance with viewing keys.
+**SIP (Shielded Intents Protocol)** is the privacy standard for Web3. One toggle to shield your sender, amount, and recipient—while maintaining compliance with viewing keys. Works for same-chain AND cross-chain transactions.
 
 ```typescript
 // Create a private cross-chain swap
@@ -55,12 +55,12 @@ const intent = await sip
 ### 🔐 [sip-protocol](https://github.com/sip-protocol/sip-protocol)
 **Core SDK & Types**
 
-The privacy layer SDK with stealth addresses, commitments, and viewing keys.
+The privacy layer SDK with stealth addresses, Pedersen commitments, and viewing keys.
 
-- ✅ **Status:** Production-ready (M4 complete)
+- ✅ **Status:** Production-ready (M16 complete)
 - 🛠️ **Stack:** TypeScript, @noble/curves, Vitest
-- 📦 **Packages:** @sip-protocol/sdk, @sip-protocol/types
-- ✨ **Tests:** 741 tests passing
+- 📦 **Packages:** 7 packages (sdk, types, react, cli, api, react-native, circuits)
+- ✨ **Tests:** 6,661+ tests passing
 
 [📖 Documentation](https://docs.sip-protocol.org) • [🚀 Get Started](#quick-start)
 
@@ -88,8 +88,8 @@ Comprehensive guides, API reference, and integration examples.
 
 Noir-based zero-knowledge proof circuits for funding, validity, and fulfillment proofs.
 
-- 📋 **Status:** Planned
-- 🛠️ **Stack:** Noir, Halo2 backend
+- ✅ **Status:** Implemented (3 circuits, 19 tests)
+- 🛠️ **Stack:** Noir 1.0.0-beta.15, Barretenberg
 - 🎯 **Proofs:** Funding, Validity, Fulfillment
 
 </td>
@@ -230,23 +230,21 @@ Cross-chain transactions are **public by default**:
 
 ## Roadmap
 
-### ✅ Completed
+### ✅ Completed (M1-M16)
 
-- **M1:** Architecture & Specification
-- **M2:** Cryptographic Core (Pedersen, stealth addresses)
-- **M3:** SDK Production (validation, errors, tests)
-- **M4:** Network Integration (NEAR, Zcash, wallet adapters)
+- **Phase 1:** Foundation — Core crypto, NEAR Intents, Zcash
+- **Phase 2:** Standard — Multi-backend, 15+ chains support
+- **Phase 3:** Ecosystem — Compliance, React/CLI/API packages, hardware wallets
+- **M16:** Narrative Capture — Content campaign, community, 25 blog posts
 
-### 🔄 In Progress
+### 🎯 In Progress (M17)
 
-- **M5:** Documentation & Launch
+- **M17:** Solana Same-Chain Privacy — Native SDK + Jupiter DEX integration
 
-### 🔮 Future
+### 🔮 Future (M18-M21)
 
-- Real ZK circuits (Noir + Halo2)
-- Private payments API
-- DAO treasury integration
-- Hardware wallet support
+- **M18:** Ethereum Same-Chain — EVM privacy + L2 support
+- **M19-M21:** Technical Moat — Proof composition, SIP-EIP standard
 
 ---
 
@@ -267,7 +265,7 @@ Cross-chain transactions are **public by default**:
 
 ---
 
-**SIP Protocol** | Cross-Chain Privacy | 2025
+**SIP Protocol** | THE Privacy Standard for Web3 | 2026
 
 [![GitHub](https://img.shields.io/badge/GitHub-sip--protocol-181717?style=for-the-badge&logo=github)](https://github.com/sip-protocol)
 [![Website](https://img.shields.io/badge/Website-sip--protocol.org-00C08B?style=for-the-badge&logo=google-chrome&logoColor=white)](https://sip-protocol.org)
