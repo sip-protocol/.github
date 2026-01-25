@@ -57,7 +57,7 @@ const intent = await sip
 
 The privacy layer SDK with stealth addresses, Pedersen commitments, and viewing keys.
 
-- ✅ **Status:** Production-ready (M16 complete)
+- ✅ **Status:** Production-ready (M17 complete)
 - 🛠️ **Stack:** TypeScript, @noble/curves, Vitest
 - 📦 **Packages:** 7 packages (sdk, types, react, cli, api, react-native, circuits)
 - ✨ **Tests:** 6,661+ tests passing
@@ -237,9 +237,13 @@ Cross-chain transactions are **public by default**:
 - **Phase 3:** Ecosystem — Compliance, React/CLI/API packages, hardware wallets
 - **M16:** Narrative Capture — Content campaign, community, 25 blog posts
 
-### 🎯 In Progress (M17)
+### ✅ Recently Completed (M17)
 
-- **M17:** Solana Same-Chain Privacy — Native SDK + Jupiter DEX integration
+- **M17:** Solana Same-Chain Privacy — Native SDK + Jupiter DEX integration (Complete Jan 2026)
+
+### 🎯 In Progress (M18)
+
+- **M18:** Ethereum Same-Chain Privacy — Base L2 + Solidity contracts
 
 ### 🔮 Future (M18-M21)
 
