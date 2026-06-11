@@ -6,42 +6,10 @@
 const fs = require('fs')
 const path = require('path')
 const { planRoles, planCategories, planChannels, buildOverwrites, planAutomod, rewriteMentions } = require('./lib.js')
-
-const TOKEN = process.env.DISCORD_BOT_TOKEN
-const GUILD = process.env.DISCORD_GUILD_ID
+const { makeApi, requireEnv } = require('./api.js')
+const { TOKEN, GUILD } = requireEnv()
 const DRY = process.argv.includes('--plan')
-const API = 'https://discord.com/api/v10'
-
-if (!TOKEN || !GUILD) {
-  console.error('Missing env. Set DISCORD_BOT_TOKEN and DISCORD_GUILD_ID in ~/Documents/secret/.env (zshrc auto-loads).')
-  process.exit(1)
-}
-
-const sleep = ms => new Promise(r => setTimeout(r, ms))
-
-async function api(method, route, body, extra = {}) {
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const res = await fetch(`${API}${route}`, {
-      method,
-      headers: { Authorization: `Bot ${TOKEN}`, 'Content-Type': 'application/json', 'X-Audit-Log-Reason': 'SIP discord/setup.js', ...extra.headers },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    })
-    if (res.status === 429) {
-      const data = await res.json().catch(() => ({}))
-      const wait = Math.ceil((data.retry_after || 1) * 1000)
-      console.log(`  rate-limited, waiting ${wait}ms`)
-      await sleep(wait)
-      continue
-    }
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(`${method} ${route} → ${res.status}: ${text}`)
-    }
-    if (res.status === 204) return null
-    return res.json()
-  }
-  throw new Error(`${method} ${route} → still rate-limited after 5 attempts`)
-}
+const api = makeApi(TOKEN, 'SIP discord/setup.js')
 
 async function main() {
   const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, 'manifest.json'), 'utf8'))

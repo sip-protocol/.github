@@ -1,0 +1,13 @@
+{
+  "name": "sip-discord-toolkit",
+  "private": true,
+  "description": "SIP Protocol Discord infra-as-code toolkit",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node --test",
+    "render": "node render.js"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  }
+}

@@ -5,21 +5,10 @@
 const fs = require('fs')
 const path = require('path')
 const { planRoles, planCategories, planChannels, planAutomod } = require('./lib.js')
-
-const TOKEN = process.env.DISCORD_BOT_TOKEN
-const GUILD = process.env.DISCORD_GUILD_ID
-const API = 'https://discord.com/api/v10'
-
-if (!TOKEN || !GUILD) {
-  console.error('Missing env. Set DISCORD_BOT_TOKEN and DISCORD_GUILD_ID.')
-  process.exit(1)
-}
-
-async function get(route) {
-  const res = await fetch(`${API}${route}`, { headers: { Authorization: `Bot ${TOKEN}` } })
-  if (!res.ok) throw new Error(`GET ${route} → ${res.status}: ${await res.text()}`)
-  return res.json()
-}
+const { makeApi, requireEnv } = require('./api.js')
+const { TOKEN, GUILD } = requireEnv()
+const api = makeApi(TOKEN, 'SIP discord/verify.js')
+const get = route => api('GET', route)
 
 async function main() {
   const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, 'manifest.json'), 'utf8'))
