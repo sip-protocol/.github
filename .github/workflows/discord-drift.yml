@@ -1,0 +1,37 @@
+name: discord-drift
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit tests
+        working-directory: discord
+        run: node --test
+      - name: Drift check
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
+        run: node discord/verify.js
+      - name: Alert mod-log on drift
+        if: failure()
+        env:
+          HOOK: ${{ secrets.DISCORD_MODLOG_WEBHOOK_URL }}
+        run: |
+          curl -sf -X POST -H 'Content-Type: application/json' "$HOOK" -d '{
+            "username": "SIP Ops",
+            "embeds": [{
+              "title": "Discord drift detected",
+              "description": "`verify.js` failed in the weekly check. Run `node discord/setup.js --plan` locally to see the diff.\n[Workflow run](https://github.com/sip-protocol/.github/actions/runs/'"$GITHUB_RUN_ID"')",
+              "color": 15548997
+            }]
+          }'
