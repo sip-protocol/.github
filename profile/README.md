@@ -14,6 +14,7 @@
 [![Website](https://img.shields.io/badge/🌐_sip--protocol.org-00C08B?style=for-the-badge)](https://sip-protocol.org)
 [![npm](https://img.shields.io/badge/npm-@sip--protocol/sdk-CB3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@sip-protocol/sdk)
 [![Docs](https://img.shields.io/badge/📚_Documentation-blue?style=for-the-badge)](https://docs.sip-protocol.org)
+[![Discord](https://img.shields.io/badge/Discord-Join_the_community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/gXRsWkKq9E)
 
 **🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) 3 Tracks ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000)**
 
@@ -273,6 +274,7 @@ Cross-chain transactions are **public by default**:
 
 [![GitHub](https://img.shields.io/badge/GitHub-sip--protocol-181717?style=for-the-badge&logo=github)](https://github.com/sip-protocol)
 [![Website](https://img.shields.io/badge/Website-sip--protocol.org-00C08B?style=for-the-badge&logo=google-chrome&logoColor=white)](https://sip-protocol.org)
+[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/gXRsWkKq9E)
 
 *Built on NEAR Intents + Zcash Privacy*
 

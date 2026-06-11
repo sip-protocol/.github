@@ -1,0 +1,110 @@
+{
+  "guild": {
+    "name": "SIP Protocol",
+    "verification_level": 2,
+    "default_message_notifications": 1,
+    "explicit_content_filter": 2,
+    "icon_file": "assets/logo-512.png",
+    "rules_channel": "rules",
+    "public_updates_channel": "mod-log",
+    "everyone_permissions": "311452617793"
+  },
+  "roles": [
+    { "name": "Admin", "color": 16096779, "hoist": true, "mentionable": false, "permissions": "8" },
+    { "name": "Contributor", "color": 9133302, "hoist": true, "mentionable": true, "permissions": "0" },
+    { "name": "Bounty Hunter", "color": 1357990, "hoist": true, "mentionable": true, "permissions": "0" },
+    { "name": "Community", "color": 9741240, "hoist": false, "mentionable": false, "permissions": "0" }
+  ],
+  "cleanup_defaults": {
+    "delete_voice_channels": ["General"],
+    "delete_empty_categories": ["Text Channels", "Voice Channels"]
+  },
+  "categories": [
+    {
+      "name": "📌 START HERE",
+      "overwrites": [{ "role": "@everyone", "deny": "309237647360" }],
+      "channels": [
+        { "name": "rules", "type": 0, "topic": "Read + accept to unlock the server. The team will NEVER DM you first." },
+        { "name": "announcements", "type": 5, "topic": "Releases, milestones, bounty launches. Follow to mirror into your own server." },
+        { "name": "resources", "type": 0, "topic": "Docs, SDK, app, blog — everything you need to build." }
+      ]
+    },
+    {
+      "name": "💬 COMMUNITY",
+      "channels": [
+        { "name": "general", "type": 0, "topic": "Privacy, Solana, Web3, and everything SIP." },
+        { "name": "ideas", "type": 0, "topic": "Feature requests + use cases. The best ideas become issues (and bounties)." }
+      ]
+    },
+    {
+      "name": "🔧 DEVELOPMENT",
+      "channels": [
+        { "name": "dev-chat", "type": 0, "topic": "SDK questions, integration help. Share code, get unblocked." },
+        { "name": "bug-reports", "type": 0, "topic": "Bugs → here or GitHub issues. Security vulns → SECURITY.md (private), never here." }
+      ]
+    },
+    {
+      "name": "🏆 BOUNTIES",
+      "channels": [
+        { "name": "bounties", "type": 0, "topic": "Active Superteam Earn bounties, submissions, winners." }
+      ]
+    },
+    {
+      "name": "🤖 MACHINE",
+      "channels": [
+        { "name": "bot-commands", "type": 0, "topic": "Bot playground. HERALD lands here in v2." },
+        { "name": "mod-log", "type": 0, "topic": "AutoMod flags + Discord community notices. Staff only.", "overwrites": [{ "role": "@everyone", "deny": "1024" }] }
+      ]
+    }
+  ],
+  "automod": [
+    { "name": "Spam (preset)", "event_type": 1, "trigger_type": 3, "actions": [{ "type": 1 }] },
+    { "name": "Keyword presets", "event_type": 1, "trigger_type": 4, "trigger_metadata": { "presets": [2, 3], "allow_list": [] }, "actions": [{ "type": 1 }] },
+    { "name": "Mention spam", "event_type": 1, "trigger_type": 5, "trigger_metadata": { "mention_total_limit": 5, "mention_raid_protection_enabled": true }, "actions": [{ "type": 1 }, { "type": 2, "alert_channel": "mod-log" }] },
+    {
+      "name": "Wallet-drainer phrases", "event_type": 1, "trigger_type": 1,
+      "trigger_metadata": { "keyword_filter": ["*free nitro*", "*nitro giveaway*", "*claim your airdrop*", "*airdrop claim*", "*connect your wallet*", "*verify your wallet*", "*wallet verification*", "*validate your wallet*", "*synchronize your wallet*", "*dm me to claim*", "*first come first serve*"] },
+      "exempt_channels": ["dev-chat", "bug-reports"], "exempt_roles": ["Admin"],
+      "actions": [{ "type": 1, "custom_message": "Blocked by SIP AutoMod — see #rules. The team never DMs first." }, { "type": 2, "alert_channel": "mod-log" }]
+    }
+  ],
+  "welcome_screen": {
+    "description": "The privacy standard for Web3 — stealth addresses, hidden amounts, viewing keys.",
+    "channels": [
+      { "channel": "rules", "description": "Start here — accept to unlock the server", "emoji": "📌" },
+      { "channel": "general", "description": "Say salam 👋 — main chat", "emoji": "💬" },
+      { "channel": "dev-chat", "description": "Get integration help", "emoji": "🔧" },
+      { "channel": "bounties", "description": "Paid work, live soon", "emoji": "🏆" }
+    ]
+  },
+  "onboarding": {
+    "default_channels": ["rules", "announcements", "resources", "general", "ideas", "dev-chat", "bug-reports", "bounties"],
+    "prompt": {
+      "title": "What brings you to SIP?",
+      "options": [
+        { "title": "Here for bounties", "description": "Paid work on Superteam Earn", "emoji": "🏆", "roles": ["Bounty Hunter"], "channels": ["bounties"] },
+        { "title": "Building with the SDK", "description": "Integrating privacy into my app", "emoji": "🔧", "roles": ["Community"], "channels": ["dev-chat"] },
+        { "title": "Exploring privacy", "description": "Learning what SIP is about", "emoji": "🔒", "roles": ["Community"], "channels": ["general"] }
+      ]
+    }
+  },
+  "seeds": [
+    {
+      "channel": "rules", "pin": true,
+      "content": "**Welcome to SIP Protocol** 🔒\nAccepting these rules unlocks the server.\n\n**1. Be respectful.** No harassment, hate speech, or personal attacks.\n**2. No scams, spam, or shilling.** No unsolicited promo, no \"DM me\" bait. Wallet-drainer links = instant ban.\n**3. English only** — so everyone can follow along.\n**4. No financial advice.** SIP is privacy infrastructure; nobody here tells you what to buy.\n**5. Security:** the team will NEVER DM you first and will NEVER ask you to connect a wallet or share keys. Report impersonators in <#bug-reports>.\n**6. Vulnerabilities:** report privately via GitHub Security advisories (SECURITY.md) — never in public channels."
+    },
+    {
+      "channel": "announcements", "pin": false,
+      "content": "**The SIP Protocol Discord is live** 🔒\n\nSIP (Shielded Intents Protocol) is the privacy standard for Web3 — stealth addresses, hidden amounts, viewing keys for compliance. One toggle to make transactions private.\n\n**Start here:**\n→ What is your wallet leaking? https://app.sip-protocol.org/privacy-score\n→ Build with the SDK: https://docs.sip-protocol.org\n→ <#dev-chat> for integration help · <#bounties> for paid work (4 bounties launching on Superteam Earn)\n\nYour wallet is public. Let's fix that — welcome in."
+    },
+    {
+      "channel": "resources", "pin": true,
+      "content": "**SIP Protocol — Resources** 📖\n\n🌐 Website: https://sip-protocol.org\n🚀 App: https://app.sip-protocol.org\n🔍 Privacy Score: https://app.sip-protocol.org/privacy-score\n📚 Docs: https://docs.sip-protocol.org\n📦 SDK: https://www.npmjs.com/package/@sip-protocol/sdk\n🐙 GitHub: https://github.com/sip-protocol\n✍️ Blog: https://blog.sip-protocol.org\n🐦 X: https://x.com/sipprotocol"
+    },
+    {
+      "channel": "bounties", "pin": false,
+      "content": "**4 bounties are launching on Superteam Earn** 🏆\n**Write a Thread** · **Build a Privacy App with the SDK** · **Technical Deep-Dive** · **Bug Bounty**\nPrizes + links land here — watch <#announcements>."
+    }
+  ],
+  "invite": { "channel": "general" }
+}
