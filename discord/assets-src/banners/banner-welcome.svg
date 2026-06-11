@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c0a14"/><stop offset=".6" stop-color="#17102b"/><stop offset="1" stop-color="#2a1458"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".85" cy=".2" r=".9">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity=".5"/><stop offset=".5" stop-color="#8b5cf6" stop-opacity=".08"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="400" fill="url(#bg)"/>
+  <rect width="1200" height="400" fill="url(#glow)"/>
+  <g stroke="#8b5cf6" stroke-opacity=".12">
+    <path d="M0 100h1200M0 200h1200M0 300h1200"/>
+    <path d="M200 0v400M400 0v400M600 0v400M800 0v400M1000 0v400"/>
+  </g>
+  <text x="80" y="148" font-family="Inter" font-size="62" font-weight="800" fill="#f2f3f5" letter-spacing="-1">The privacy standard for Web3</text>
+  <text x="82" y="204" font-family="JetBrains Mono" font-size="26" fill="#a78bfa">stealth addresses · hidden amounts · viewing keys</text>
+  <g font-family="Inter" font-size="20" font-weight="600">
+    <rect x="80" y="252" rx="19" width="200" height="38" fill="#8b5cf6" fill-opacity=".18" stroke="#8b5cf6" stroke-opacity=".55"/>
+    <text x="180" y="278" fill="#d6c7ff" text-anchor="middle">One toggle</text>
+    <rect x="296" y="252" rx="19" width="250" height="38" fill="#8b5cf6" fill-opacity=".18" stroke="#8b5cf6" stroke-opacity=".55"/>
+    <text x="421" y="278" fill="#d6c7ff" text-anchor="middle">Compliance-ready</text>
+    <rect x="562" y="252" rx="19" width="220" height="38" fill="#8b5cf6" fill-opacity=".18" stroke="#8b5cf6" stroke-opacity=".55"/>
+    <text x="672" y="278" fill="#d6c7ff" text-anchor="middle">Chain-agnostic</text>
+  </g>
+  <g transform="translate(1040,250)">
+    <path d="M40 0l40 18v32c0 26-18 44-40 56C18 94 0 76 0 50V18L40 0z" fill="#8b5cf6" fill-opacity=".9"/>
+    <path d="M40 14l26 12v22c0 17-12 30-26 38-14-8-26-21-26-38V26l26-12z" fill="#17102b"/>
+    <circle cx="40" cy="50" r="9" fill="#a78bfa"/>
+  </g>
+  <text x="80" y="356" font-family="JetBrains Mono" font-size="17" fill="#6d6a78">discord.gg/gXRsWkKq9E · sip-protocol.org</text>
+</svg>
