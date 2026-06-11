@@ -153,6 +153,14 @@ async function main() {
     log('✓ icon uploaded')
   }
 
+  // ---- 8b. bot avatar (the bot user's own profile picture, same logo)
+  const me = await api('GET', '/users/@me')
+  if (!me.avatar) {
+    const png = fs.readFileSync(path.join(__dirname, manifest.guild.icon_file))
+    await api('PATCH', '/users/@me', { avatar: `data:image/png;base64,${png.toString('base64')}` })
+    log('✓ bot avatar set')
+  }
+
   // ---- 9. automod
   for (const r of planAutomod(manifest.automod, automodLive, { channelId, roleId }).create) {
     try {
