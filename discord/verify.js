@@ -45,6 +45,7 @@ async function main() {
   pA.create.forEach(r => drift.push(`missing automod: ${r.name}`))
   if (!guild.features.includes('COMMUNITY')) drift.push('COMMUNITY feature not enabled')
   if (guild.verification_level !== manifest.guild.verification_level) drift.push(`verification_level ${guild.verification_level} ≠ ${manifest.guild.verification_level}`)
+  if (guild.explicit_content_filter !== manifest.guild.explicit_content_filter) drift.push(`explicit_content_filter ${guild.explicit_content_filter} ≠ ${manifest.guild.explicit_content_filter}`)
   if (!guild.icon) drift.push('no server icon')
   if (!welcome || !welcome.welcome_channels?.length) drift.push('welcome screen not configured')
 

@@ -3,12 +3,12 @@
     "name": "SIP Protocol",
     "verification_level": 2,
     "default_message_notifications": 1,
+    "explicit_content_filter": 2,
     "icon_file": "assets/logo-512.png",
     "rules_channel": "rules",
     "public_updates_channel": "mod-log",
     "everyone_permissions": "311452617793"
   },
-  "bot_role": { "name": "SIPHER", "color": 6583435 },
   "roles": [
     { "name": "Admin", "color": 16096779, "hoist": true, "mentionable": false, "permissions": "8" },
     { "name": "Contributor", "color": 9133302, "hoist": true, "mentionable": true, "permissions": "0" },

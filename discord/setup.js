@@ -86,10 +86,7 @@ async function main() {
   for (const r of pRoles.create) { await api('POST', `/guilds/${GUILD}/roles`, r); log(`✓ role ${r.name}`) }
   for (const u of pRoles.update) { await api('PATCH', `/guilds/${GUILD}/roles/${u.id}`, u.patch); log(`✓ role ~${u.name}`) }
   roles = await api('GET', `/guilds/${GUILD}/roles`)
-  const botRole = roles.find(r => r.managed && r.name === manifest.bot_role.name)
-  if (botRole && botRole.color !== manifest.bot_role.color) {
-    await api('PATCH', `/guilds/${GUILD}/roles/${botRole.id}`, { color: manifest.bot_role.color }).catch(e => warnings.push(`bot role color: ${e.message}`))
-  }
+  // NOTE: the bot's own managed role (SIPHER) cannot be edited via API (403 50013) — cosmetic color stays default.
 
   // ---- 3. categories (then refresh)
   for (const c of pCats.create) { await api('POST', `/guilds/${GUILD}/channels`, { name: c.name, type: 4, position: c.position }); log(`✓ category ${c.name}`) }
@@ -124,8 +121,9 @@ async function main() {
   await api('PATCH', `/guilds/${GUILD}`, {
     verification_level: manifest.guild.verification_level,
     default_message_notifications: manifest.guild.default_message_notifications,
+    explicit_content_filter: manifest.guild.explicit_content_filter,
   })
-  log('✓ guild settings (verification, notifications)')
+  log('✓ guild settings (verification, notifications, content filter)')
 
   // ---- 6. COMMUNITY
   if (!guild.features.includes('COMMUNITY')) {
