@@ -46,7 +46,7 @@ test('planCategories + planChannels create everything on empty live', () => {
   const cats = planCategories(manifest.categories, [])
   assert.equal(cats.create.length, 5)
   const chans = planChannels(manifest.categories, [], () => null)
-  assert.equal(chans.create.length, 10)
+  assert.equal(chans.create.length, 11)
 })
 
 test('planChannels is empty on manifest-shaped live (idempotency)', () => {

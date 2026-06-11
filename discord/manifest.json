@@ -53,6 +53,7 @@
       "name": "🤖 MACHINE",
       "channels": [
         { "name": "bot-commands", "type": 0, "topic": "Bot playground. HERALD lands here in v2." },
+        { "name": "github-feed", "type": 0, "topic": "Live firehose from github.com/sip-protocol — releases, merged PRs, issues. Read-only.", "overwrites": [{ "role": "@everyone", "deny": "309237647360" }] },
         { "name": "mod-log", "type": 0, "topic": "AutoMod flags + Discord community notices. Staff only.", "overwrites": [{ "role": "@everyone", "deny": "1024" }] }
       ]
     }
@@ -88,23 +89,71 @@
       ]
     }
   },
+  "invite": { "channel": "general" },
+  "webhooks": [
+    { "name": "SIP GitHub", "channel": "github-feed", "env": "DISCORD_GITHUB_WEBHOOK_URL" },
+    { "name": "HERALD", "channel": "announcements", "env": "DISCORD_ANNOUNCE_WEBHOOK_URL" },
+    { "name": "SIP Ops", "channel": "mod-log", "env": "DISCORD_MODLOG_WEBHOOK_URL" }
+  ],
+  "emojis": [
+    { "name": "sip_shield", "file": "assets/emoji/sip_shield.png" },
+    { "name": "sip_stealth", "file": "assets/emoji/sip_stealth.png" },
+    { "name": "sip_viewkey", "file": "assets/emoji/sip_viewkey.png" },
+    { "name": "sip_zk", "file": "assets/emoji/sip_zk.png" },
+    { "name": "sip_commit", "file": "assets/emoji/sip_commit.png" },
+    { "name": "sip_bounty", "file": "assets/emoji/sip_bounty.png" },
+    { "name": "sip_ship", "file": "assets/emoji/sip_ship.png" },
+    { "name": "sip_gm", "file": "assets/emoji/sip_gm.png" },
+    { "name": "sip_sol", "file": "assets/emoji/sip_sol.png" },
+    { "name": "sip_eth", "file": "assets/emoji/sip_eth.png" }
+  ],
   "seeds": [
     {
-      "channel": "rules", "pin": true,
-      "content": "**Welcome to SIP Protocol** 🔒\nAccepting these rules unlocks the server.\n\n**1. Be respectful.** No harassment, hate speech, or personal attacks.\n**2. No scams, spam, or shilling.** No unsolicited promo, no \"DM me\" bait. Wallet-drainer links = instant ban.\n**3. English only** — so everyone can follow along.\n**4. No financial advice.** SIP is privacy infrastructure; nobody here tells you what to buy.\n**5. Security:** the team will NEVER DM you first and will NEVER ask you to connect a wallet or share keys. Report impersonators in <#bug-reports>.\n**6. Vulnerabilities:** report privately via GitHub Security advisories (SECURITY.md) — never in public channels."
+      "key": "rules", "channel": "rules", "pin": true,
+      "payload": {
+        "type": "announcement", "channel": "rules",
+        "title": "Welcome to SIP Protocol 🔒",
+        "body": "Accepting these rules unlocks the server.\n\n**1. Be respectful.** No harassment, hate speech, or personal attacks.\n**2. No scams, spam, or shilling.** No unsolicited promo, no \"DM me\" bait. Wallet-drainer links = instant ban.\n**3. English only** — so everyone can follow along.\n**4. No financial advice.** SIP is privacy infrastructure; nobody here tells you what to buy.\n**5. Security:** the team will NEVER DM you first and will NEVER ask you to connect a wallet or share keys. Report impersonators in <#bug-reports>.\n**6. Vulnerabilities:** report privately via GitHub Security advisories (SECURITY.md) — never in public channels."
+      }
     },
     {
-      "channel": "announcements", "pin": false,
-      "content": "**The SIP Protocol Discord is live** 🔒\n\nSIP (Shielded Intents Protocol) is the privacy standard for Web3 — stealth addresses, hidden amounts, viewing keys for compliance. One toggle to make transactions private.\n\n**Start here:**\n→ What is your wallet leaking? https://app.sip-protocol.org/privacy-score\n→ Build with the SDK: https://docs.sip-protocol.org\n→ <#dev-chat> for integration help · <#bounties> for paid work (4 bounties launching on Superteam Earn)\n\nYour wallet is public. Let's fix that — welcome in."
+      "key": "welcome", "channel": "announcements", "pin": false,
+      "payload": {
+        "type": "announcement", "channel": "announcements",
+        "title": "The SIP Protocol Discord is live",
+        "body": "SIP (Shielded Intents Protocol) is the privacy standard for Web3 — stealth addresses, hidden amounts, viewing keys for compliance. One toggle to make transactions private.\n\n**Start here:**\n→ What is your wallet leaking? Run the [Privacy Score](https://app.sip-protocol.org/privacy-score)\n→ Build with the [SDK docs](https://docs.sip-protocol.org)\n→ <#dev-chat> for integration help · <#bounties> for paid work\n\nYour wallet is public. Let's fix that — welcome in.",
+        "banner": "https://cdn.sip-protocol.org/discord/banner-welcome.v1.png",
+        "buttons": [
+          { "label": "Privacy Score", "url": "https://app.sip-protocol.org/privacy-score" },
+          { "label": "SDK Docs", "url": "https://docs.sip-protocol.org" }
+        ]
+      }
     },
     {
-      "channel": "resources", "pin": true,
-      "content": "**SIP Protocol — Resources** 📖\n\n🌐 Website: https://sip-protocol.org\n🚀 App: https://app.sip-protocol.org\n🔍 Privacy Score: https://app.sip-protocol.org/privacy-score\n📚 Docs: https://docs.sip-protocol.org\n📦 SDK: https://www.npmjs.com/package/@sip-protocol/sdk\n🐙 GitHub: https://github.com/sip-protocol\n✍️ Blog: https://blog.sip-protocol.org\n🐦 X: https://x.com/sipprotocol"
+      "key": "resources", "channel": "resources", "pin": true,
+      "payload": {
+        "type": "announcement", "channel": "resources",
+        "title": "SIP Protocol — Resources 📖",
+        "body": "🌐 [Website](https://sip-protocol.org) — what SIP is\n🚀 [App](https://app.sip-protocol.org) — payments, DEX, privacy score\n🔍 [Privacy Score](https://app.sip-protocol.org/privacy-score) — what is your wallet leaking?\n📚 [Docs](https://docs.sip-protocol.org) — build with the SDK\n📦 [SDK on npm](https://www.npmjs.com/package/@sip-protocol/sdk) — `@sip-protocol/sdk`\n🐙 [GitHub](https://github.com/sip-protocol) — all 10 repos, MIT\n✍️ [Blog](https://blog.sip-protocol.org) — deep-dives + updates\n🐦 [X](https://x.com/sipprotocol) — @sipprotocol",
+        "buttons": [
+          { "label": "Docs", "url": "https://docs.sip-protocol.org" },
+          { "label": "GitHub", "url": "https://github.com/sip-protocol" }
+        ]
+      }
     },
     {
-      "channel": "bounties", "pin": false,
-      "content": "**4 bounties are launching on Superteam Earn** 🏆\n**Write a Thread** · **Build a Privacy App with the SDK** · **Technical Deep-Dive** · **Bug Bounty**\nPrizes + links land here — watch <#announcements>."
+      "key": "bounties", "channel": "bounties", "pin": false,
+      "payload": {
+        "type": "bounty", "channel": "bounties",
+        "title": "4 bounties are launching on Superteam Earn 🏆",
+        "body": "Prizes + links land here — watch <#announcements>.",
+        "cells": [
+          { "name": "🧵 Write a Thread", "value": "TBA" },
+          { "name": "🛠️ Build with the SDK", "value": "TBA" },
+          { "name": "📖 Technical Deep-Dive", "value": "TBA" },
+          { "name": "🐛 Bug Bounty", "value": "TBA" }
+        ]
+      }
     }
-  ],
-  "invite": { "channel": "general" }
+  ]
 }
