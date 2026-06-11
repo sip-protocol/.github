@@ -136,6 +136,24 @@ test('planSeeds: post when no marked message, ok when matching, patch on drift',
   assert.equal(plan[0].action, 'post')
 })
 
+test('planSeeds: refuses legacy fallback across a truncated window (≥50 messages, no marker)', () => {
+  const seed = { key: 'rules', channel: 'rules', pin: true, payload: { type: 'announcement', channel: 'rules', title: 'T', body: 'B' } }
+  const renderSeed = s => render(s.payload, { seedKey: s.key })
+  const BOT = 'bot1'
+  const msgs = Array.from({ length: 50 }, (_, i) => ({ id: `m${i}`, author: { id: BOT }, components: [], content: `msg ${i}` }))
+  const plan = planSeeds([seed], { rules: msgs }, BOT, renderSeed)
+  assert.deepEqual(plan[0], { key: 'rules', channel: 'rules', action: 'manual' })
+})
+
+test('planSeeds: repin when content matches but the pin was removed', () => {
+  const seed = { key: 'rules', channel: 'rules', pin: true, payload: { type: 'announcement', channel: 'rules', title: 'T', body: 'B' } }
+  const renderSeed = s => render(s.payload, { seedKey: s.key })
+  const BOT = 'bot1'
+  const live = { id: 'm1', author: { id: BOT }, pinned: false, components: JSON.parse(JSON.stringify(renderSeed(seed).components)) }
+  const plan = planSeeds([seed], { rules: [live] }, BOT, renderSeed)
+  assert.deepEqual(plan[0], { key: 'rules', channel: 'rules', action: 'repin', targetId: 'm1' })
+})
+
 test('planSeeds: marker match is exact — seed:rules does not match a seed:rulesv2 marker', () => {
   const seed = { key: 'rules', channel: 'rules', pin: true, payload: { type: 'announcement', channel: 'rules', title: 'T', body: 'B' } }
   const renderSeed = s => render(s.payload, { seedKey: s.key })

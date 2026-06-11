@@ -4,7 +4,8 @@
 
 const fs = require('fs')
 const path = require('path')
-const { planRoles, planCategories, planChannels, planAutomod } = require('./lib.js')
+const { planRoles, planCategories, planChannels, planAutomod, planEmojis, planWebhooks, planSeeds, rewriteMentions } = require('./lib.js')
+const { render, normalizeComponents } = require('./templates.js')
 const { makeApi, requireEnv } = require('./api.js')
 const { TOKEN, GUILD } = requireEnv()
 const api = makeApi(TOKEN, 'SIP discord/verify.js')
@@ -37,6 +38,23 @@ async function main() {
   if (guild.explicit_content_filter !== manifest.guild.explicit_content_filter) drift.push(`explicit_content_filter ${guild.explicit_content_filter} ≠ ${manifest.guild.explicit_content_filter}`)
   if (!guild.icon) drift.push('no server icon')
   if (!welcome || !welcome.welcome_channels?.length) drift.push('welcome screen not configured')
+
+  const emojis = await get(`/guilds/${GUILD}/emojis`)
+  planEmojis(manifest.emojis, emojis).create.forEach(e => drift.push(`missing emoji: ${e.name}`))
+
+  const hooks = await get(`/guilds/${GUILD}/webhooks`)
+  planWebhooks(manifest.webhooks, hooks).create.forEach(w => drift.push(`missing webhook: ${w.name}`))
+
+  const me = await get('/users/@me')
+  const messagesByChannel = {}
+  for (const seed of manifest.seeds) {
+    const cid = channelId(seed.channel)
+    messagesByChannel[seed.channel] = cid ? await get(`/channels/${cid}/messages?limit=50`) : []
+  }
+  const renderSeed = s => render({ ...s.payload, body: rewriteMentions(s.payload.body, channelId) }, { seedKey: s.key })
+  planSeeds(manifest.seeds, messagesByChannel, me.id, renderSeed, normalizeComponents)
+    .filter(a => a.action !== 'ok')
+    .forEach(a => drift.push(`seed drift: ${a.key} → ${a.action}`))
 
   if (drift.length) {
     console.error(`DRIFT (${drift.length}):`)

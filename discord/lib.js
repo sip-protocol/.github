@@ -112,11 +112,19 @@ function planSeeds(seeds, messagesByChannel, botUserId, renderSeed, normalize) {
     // newest-first: if multiple marked messages exist, target the newest (the current post).
     // The trailing JSON-quote makes the key match exact (seed:rules ≠ seed:rulesv2).
     const marked = mine.find(m => JSON.stringify(m.components || []).includes(`seed:${seed.key}"`))
-    const target = marked || (mine.length ? mine[mine.length - 1] : null)
-    if (!target) return { key: seed.key, channel: seed.channel, action: 'post' }
+    // Window guard: if no marker found and the fetch hit the 50-message page limit,
+    // the real seed may be outside the window — refuse to guess rather than patch the wrong message.
+    const target = marked || (mine.length && msgs.length < 50 ? mine[mine.length - 1] : null)
+    if (!target) {
+      if (!marked && mine.length && msgs.length >= 50) return { key: seed.key, channel: seed.channel, action: 'manual' }
+      return { key: seed.key, channel: seed.channel, action: 'post' }
+    }
     const want = norm(renderSeed(seed).components)
     const have = norm(target.components || [])
-    if (JSON.stringify(want) === JSON.stringify(have)) return { key: seed.key, channel: seed.channel, action: 'ok', targetId: target.id }
+    if (JSON.stringify(want) === JSON.stringify(have)) {
+      if (seed.pin && !target.pinned) return { key: seed.key, channel: seed.channel, action: 'repin', targetId: target.id }
+      return { key: seed.key, channel: seed.channel, action: 'ok', targetId: target.id }
+    }
     return { key: seed.key, channel: seed.channel, action: 'patch', targetId: target.id, pinned: !!target.pinned }
   })
 }
