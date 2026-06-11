@@ -3,7 +3,9 @@ const { test } = require('node:test')
 const assert = require('node:assert/strict')
 const {
   planRoles, planCategories, planChannels, buildOverwrites, planAutomod, rewriteMentions,
+  planEmojis, planWebhooks, planSeeds,
 } = require('../lib.js')
+const { render, normalizeComponents } = require('../templates.js')
 
 const manifest = JSON.parse(require('fs').readFileSync(`${__dirname}/../manifest.json`, 'utf8'))
 const GUILD_ID = '999000'
@@ -44,7 +46,7 @@ test('planCategories + planChannels create everything on empty live', () => {
   const cats = planCategories(manifest.categories, [])
   assert.equal(cats.create.length, 5)
   const chans = planChannels(manifest.categories, [], () => null)
-  assert.equal(chans.create.length, 10)
+  assert.equal(chans.create.length, 11)
 })
 
 test('planChannels is empty on manifest-shaped live (idempotency)', () => {
@@ -86,4 +88,80 @@ test('planAutomod resolves alert channel + exempts, creates missing only', () =>
 test('rewriteMentions swaps <#name> for <#id>', () => {
   const out = rewriteMentions('go to <#dev-chat> or <#bounties>', n => ({ 'dev-chat': '111', bounties: '222' })[n])
   assert.equal(out, 'go to <#111> or <#222>')
+})
+
+test('planEmojis creates only missing emojis by name', () => {
+  const wanted = [{ name: 'sip_shield', file: 'assets/emoji/sip_shield.png' }, { name: 'sip_zk', file: 'assets/emoji/sip_zk.png' }]
+  const plan = planEmojis(wanted, [{ name: 'sip_shield', id: '1' }])
+  assert.equal(plan.create.length, 1)
+  assert.equal(plan.create[0].name, 'sip_zk')
+})
+
+test('planWebhooks creates only missing webhooks by name', () => {
+  const wanted = [{ name: 'SIP GitHub', channel: 'github-feed' }, { name: 'HERALD', channel: 'announcements' }]
+  const plan = planWebhooks(wanted, [{ name: 'HERALD', channel_id: 'x' }])
+  assert.equal(plan.create.length, 1)
+  assert.equal(plan.create[0].name, 'SIP GitHub')
+})
+
+test('planSeeds: post when no marked message, ok when matching, patch on drift', () => {
+  const seed = { key: 'rules', channel: 'rules', pin: true, payload: { type: 'announcement', channel: 'rules', title: 'T', body: 'B' } }
+  const renderSeed = s => render(s.payload, { seedKey: s.key })
+  const BOT = 'bot1'
+
+  // no messages at all → post
+  let plan = planSeeds([seed], { rules: [] }, BOT, renderSeed)
+  assert.deepEqual(plan[0], { key: 'rules', channel: 'rules', action: 'post' })
+
+  // live message with marker and identical components → ok
+  const liveMsg = { id: 'm1', author: { id: BOT }, pinned: true, components: JSON.parse(JSON.stringify(renderSeed(seed).components)) }
+  plan = planSeeds([seed], { rules: [liveMsg] }, BOT, renderSeed)
+  assert.equal(plan[0].action, 'ok')
+
+  // drifted content → patch targeting the marked message
+  const drifted = JSON.parse(JSON.stringify(liveMsg))
+  drifted.components[0].components[1].content = 'old text'
+  plan = planSeeds([seed], { rules: [drifted] }, BOT, renderSeed)
+  assert.equal(plan[0].action, 'patch')
+  assert.equal(plan[0].targetId, 'm1')
+
+  // unmarked legacy bot message (plain content) → migrate = patch oldest bot message
+  const legacy = { id: 'm0', author: { id: BOT }, pinned: true, content: '**Welcome**', components: [] }
+  plan = planSeeds([seed], { rules: [{ id: 'm9', author: { id: 'someone' } }, legacy] }, BOT, renderSeed)
+  assert.equal(plan[0].action, 'patch')
+  assert.equal(plan[0].targetId, 'm0')
+
+  // non-bot messages only → post fresh
+  plan = planSeeds([seed], { rules: [{ id: 'm9', author: { id: 'someone' }, components: [] }] }, BOT, renderSeed)
+  assert.equal(plan[0].action, 'post')
+})
+
+test('planSeeds: refuses legacy fallback across a truncated window (≥50 messages, no marker)', () => {
+  const seed = { key: 'rules', channel: 'rules', pin: true, payload: { type: 'announcement', channel: 'rules', title: 'T', body: 'B' } }
+  const renderSeed = s => render(s.payload, { seedKey: s.key })
+  const BOT = 'bot1'
+  const msgs = Array.from({ length: 50 }, (_, i) => ({ id: `m${i}`, author: { id: BOT }, components: [], content: `msg ${i}` }))
+  const plan = planSeeds([seed], { rules: msgs }, BOT, renderSeed)
+  assert.deepEqual(plan[0], { key: 'rules', channel: 'rules', action: 'manual' })
+})
+
+test('planSeeds: repin when content matches but the pin was removed', () => {
+  const seed = { key: 'rules', channel: 'rules', pin: true, payload: { type: 'announcement', channel: 'rules', title: 'T', body: 'B' } }
+  const renderSeed = s => render(s.payload, { seedKey: s.key })
+  const BOT = 'bot1'
+  const live = { id: 'm1', author: { id: BOT }, pinned: false, components: JSON.parse(JSON.stringify(renderSeed(seed).components)) }
+  const plan = planSeeds([seed], { rules: [live] }, BOT, renderSeed)
+  assert.deepEqual(plan[0], { key: 'rules', channel: 'rules', action: 'repin', targetId: 'm1' })
+})
+
+test('planSeeds: marker match is exact — seed:rules does not match a seed:rulesv2 marker', () => {
+  const seed = { key: 'rules', channel: 'rules', pin: true, payload: { type: 'announcement', channel: 'rules', title: 'T', body: 'B' } }
+  const renderSeed = s => render(s.payload, { seedKey: s.key })
+  const BOT = 'bot1'
+  // newest-first: a rulesv2-marked message is NEWER than the true rules-marked one
+  const v2Msg = { id: 'mNew', author: { id: BOT }, pinned: false, components: JSON.parse(JSON.stringify(render(seed.payload, { seedKey: 'rulesv2' }).components)) }
+  const trueMsg = { id: 'mOld', author: { id: BOT }, pinned: true, components: JSON.parse(JSON.stringify(renderSeed(seed).components)) }
+  const plan = planSeeds([seed], { rules: [v2Msg, trueMsg] }, BOT, renderSeed)
+  assert.equal(plan[0].action, 'ok')
+  assert.equal(plan[0].targetId, 'mOld')
 })

@@ -5,48 +5,28 @@
 
 const fs = require('fs')
 const path = require('path')
-const { planRoles, planCategories, planChannels, buildOverwrites, planAutomod, rewriteMentions } = require('./lib.js')
-
-const TOKEN = process.env.DISCORD_BOT_TOKEN
-const GUILD = process.env.DISCORD_GUILD_ID
+const { planRoles, planCategories, planChannels, buildOverwrites, planAutomod, rewriteMentions, planEmojis, planWebhooks, planSeeds } = require('./lib.js')
+const { render, normalizeComponents } = require('./templates.js')
+const { makeApi, requireEnv } = require('./api.js')
+const { TOKEN, GUILD } = requireEnv()
 const DRY = process.argv.includes('--plan')
-const API = 'https://discord.com/api/v10'
-
-if (!TOKEN || !GUILD) {
-  console.error('Missing env. Set DISCORD_BOT_TOKEN and DISCORD_GUILD_ID in ~/Documents/secret/.env (zshrc auto-loads).')
-  process.exit(1)
-}
-
-const sleep = ms => new Promise(r => setTimeout(r, ms))
-
-async function api(method, route, body, extra = {}) {
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const res = await fetch(`${API}${route}`, {
-      method,
-      headers: { Authorization: `Bot ${TOKEN}`, 'Content-Type': 'application/json', 'X-Audit-Log-Reason': 'SIP discord/setup.js', ...extra.headers },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    })
-    if (res.status === 429) {
-      const data = await res.json().catch(() => ({}))
-      const wait = Math.ceil((data.retry_after || 1) * 1000)
-      console.log(`  rate-limited, waiting ${wait}ms`)
-      await sleep(wait)
-      continue
-    }
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(`${method} ${route} → ${res.status}: ${text}`)
-    }
-    if (res.status === 204) return null
-    return res.json()
-  }
-  throw new Error(`${method} ${route} → still rate-limited after 5 attempts`)
-}
+const api = makeApi(TOKEN, 'SIP discord/setup.js')
 
 async function main() {
   const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, 'manifest.json'), 'utf8'))
   const warnings = []
   const log = (...a) => console.log(...a)
+
+  // ---- asset preflight: verify every local file this run will need exists before any API call.
+  const assetPaths = [
+    manifest.guild.icon_file,
+    ...manifest.emojis.map(e => e.file),
+  ]
+  const missing = assetPaths.filter(p => !fs.existsSync(path.join(__dirname, p)))
+  if (missing.length) {
+    console.error(`asset preflight failed — missing files:\n${missing.map(p => `  ✗ discord/${p} (run: npm run render)`).join('\n')}`)
+    process.exit(1)
+  }
 
   // ---- read live state
   const guild = await api('GET', `/guilds/${GUILD}`)
@@ -55,9 +35,28 @@ async function main() {
   const automodLive = await api('GET', `/guilds/${GUILD}/auto-moderation/rules`)
   log(`Guild: ${guild.name} (${GUILD}) — ${channels.length} channels, ${roles.length} roles live`)
 
+  // channelId / categoryId close over the `channels` variable (let), so each
+  // `channels = await api(...)` reassignment below is automatically visible here.
   const roleId = name => roles.find(r => r.name === name && !r.managed)?.id
   const channelId = name => channels.find(c => c.name === name && c.type !== 4)?.id
   const categoryId = name => channels.find(c => c.name === name && c.type === 4)?.id
+
+  // Fetch additional live state needed for seeds/emojis/webhooks plans.
+  // Note: seeds message-fetches run after channelId helpers are defined so
+  // channelId() is already available; channels that do not exist yet return [].
+  const me = await api('GET', '/users/@me')
+  const emojisLive = await api('GET', `/guilds/${GUILD}/emojis`)
+  const hooksLive = await api('GET', `/guilds/${GUILD}/webhooks`)
+  const messagesByChannelPlan = {}
+  for (const seed of manifest.seeds) {
+    const cid = channelId(seed.channel)
+    messagesByChannelPlan[seed.channel] = cid ? await api('GET', `/channels/${cid}/messages?limit=50`) : []
+  }
+
+  // renderSeed: expand channel-mention placeholders at render time so they resolve
+  // against the live channels array (which may be stale at planning time but that's fine
+  // for --plan output; apply recomputes below).
+  const renderSeed = s => render({ ...s.payload, body: rewriteMentions(s.payload.body, channelId) }, { seedKey: s.key })
 
   // ---- compute plan
   const pRoles = planRoles(manifest.roles, roles)
@@ -67,6 +66,9 @@ async function main() {
   const pAuto = planAutomod(manifest.automod, automodLive, { channelId, roleId })
   const everyoneLive = roles.find(r => r.id === GUILD)
   const needEveryone = everyoneLive.permissions !== manifest.guild.everyone_permissions
+  const pSeeds = planSeeds(manifest.seeds, messagesByChannelPlan, me.id, renderSeed, normalizeComponents)
+  const pEmoji = planEmojis(manifest.emojis, emojisLive)
+  const pHooks = planWebhooks(manifest.webhooks, hooksLive)
 
   log(`\nPLAN: roles +${pRoles.create.length}/~${pRoles.update.length} · categories +${pCats.create.length} · channels +${pChans.create.length}/~${pChans.update.length} · automod +${pAuto.create.length} · @everyone perms ${needEveryone ? 'PATCH' : 'ok'}`)
   pRoles.create.forEach(r => log(`  + role ${r.name}`))
@@ -74,6 +76,7 @@ async function main() {
   pChans.create.forEach(c => log(`  + channel #${c.spec.name} (${c.category})`))
   pChans.update.forEach(c => log(`  ~ channel #${c.name} ${JSON.stringify(c.patch)}`))
   pAuto.create.forEach(r => log(`  + automod ${r.name}`))
+  log(`       seeds ${pSeeds.map(s => `${s.key}:${s.action}`).join(' ')} · emojis +${pEmoji.create.length} · webhooks +${pHooks.create.length}`)
   if (DRY) { log('\n--plan: no changes applied.'); return }
 
   // ---- 1. @everyone base permissions
@@ -154,7 +157,6 @@ async function main() {
   }
 
   // ---- 8b. bot avatar (the bot user's own profile picture, same logo)
-  const me = await api('GET', '/users/@me')
   if (!me.avatar) {
     const png = fs.readFileSync(path.join(__dirname, manifest.guild.icon_file))
     await api('PATCH', '/users/@me', { avatar: `data:image/png;base64,${png.toString('base64')}` })
@@ -218,14 +220,78 @@ async function main() {
     }
   }
 
-  // ---- 13. seed messages (only into empty channels) + pins
+  // ---- 13. seeds — reconciled managed messages (post if missing, PATCH on drift).
+  // seeds are deliberately never crossposted — reconciler edits must not re-blast announcement followers.
+  // Legacy plain seeds (no marker) migrate via oldest-bot-message fallback (window <50 msgs);
+  // truncated windows (≥50 msgs, no marker) surface as 'manual' — operator must intervene.
+  // If Discord rejects adding the CV2 flag on edit (400), fall back to delete + repost.
+  // Recomputed here (not reusing the --plan computation) because channels/ids may have
+  // been created earlier in this very run.
+  const messagesByChannel = {}
   for (const seed of manifest.seeds) {
-    const id = channelId(seed.channel)
-    const existing = await api('GET', `/channels/${id}/messages?limit=1`)
-    if (existing.length) { log(`· #${seed.channel} already has messages, skipping seed`); continue }
-    const msg = await api('POST', `/channels/${id}/messages`, { content: rewriteMentions(seed.content, channelId) })
-    if (seed.pin) await api('PUT', `/channels/${id}/pins/${msg.id}`)
-    log(`✓ seeded #${seed.channel}${seed.pin ? ' (pinned)' : ''}`)
+    const cid = channelId(seed.channel)
+    messagesByChannel[seed.channel] = cid ? await api('GET', `/channels/${cid}/messages?limit=50`) : []
+  }
+  const pSeedsApply = planSeeds(manifest.seeds, messagesByChannel, me.id, renderSeed, normalizeComponents)
+
+  for (const action of pSeedsApply) {
+    const seed = manifest.seeds.find(s => s.key === action.key)
+    const cid = channelId(seed.channel)
+    const body = renderSeed(seed)
+
+    if (action.action === 'ok') {
+      log(`· seed ${action.key} up to date`)
+    } else if (action.action === 'manual') {
+      warnings.push(`seed ${action.key}: #${seed.channel} has ≥50 messages and no marker — refusing to guess the migration target; post manually or clear old bot messages, then re-run`)
+    } else if (action.action === 'repin') {
+      await api('PUT', `/channels/${cid}/pins/${action.targetId}`)
+      log(`✓ seed ${action.key} re-pinned`)
+    } else if (action.action === 'post') {
+      const msg = await api('POST', `/channels/${cid}/messages`, { ...body, allowed_mentions: { parse: [] } })
+      if (seed.pin) await api('PUT', `/channels/${cid}/pins/${msg.id}`)
+      log(`✓ seed ${action.key} posted${seed.pin ? ' (pinned)' : ''}`)
+    } else if (action.action === 'patch') {
+      try {
+        await api('PATCH', `/channels/${cid}/messages/${action.targetId}`, { ...body, content: null, allowed_mentions: { parse: [] } })
+        log(`✓ seed ${action.key} updated in place`)
+        if (seed.pin && action.pinned === false) {
+          await api('PUT', `/channels/${cid}/pins/${action.targetId}`).catch(() => {})
+        }
+      } catch (e) {
+        // Only fall back to delete+repost on 400-class shape/flag rejection (e.g. CV2 flag on a
+        // plain-content message). Transient 5xx / permission errors must not delete a live message.
+        if (!e.message.includes(' → 400')) throw e
+        log(`  seed ${action.key}: edit-to-CV2 rejected (${e.message.slice(0, 120)}…) — delete + repost`)
+        await api('DELETE', `/channels/${cid}/messages/${action.targetId}`)
+        let posted
+        try {
+          posted = await api('POST', `/channels/${cid}/messages`, { ...body, allowed_mentions: { parse: [] } })
+        } catch (postErr) {
+          throw new Error(`seed ${action.key}: old message DELETED but repost FAILED (${postErr.message}) — #${seed.channel} now has no seed and lost its pin; re-run setup.js to restore`)
+        }
+        if (seed.pin) await api('PUT', `/channels/${cid}/pins/${posted.id}`)
+        log(`✓ seed ${action.key} reposted${seed.pin ? ' (pinned)' : ''}`)
+      }
+    }
+  }
+
+  // ---- 13b. webhooks (create-if-missing; URL printed ONCE — store in ~/Documents/secret/.env)
+  // Webhooks run before emojis: token URLs print once and are the highest-value output.
+  // channelId() reads the mutable `channels` variable, which was last refreshed after
+  // section 12, so newly created channels are visible here.
+  for (const w of pHooks.create) {
+    const png = fs.readFileSync(path.join(__dirname, manifest.guild.icon_file))
+    const hook = await api('POST', `/channels/${channelId(w.channel)}/webhooks`, { name: w.name, avatar: `data:image/png;base64,${png.toString('base64')}` })
+    log(`✓ webhook ${w.name} on #${w.channel}`)
+    log(`  ★ ${w.env}=https://discord.com/api/webhooks/${hook.id}/${hook.token}`)
+    log(`  ★ shown ONCE — append to ~/Documents/secret/.env now`)
+  }
+
+  // ---- 13c. brand emojis (create-if-missing; never deletes unmanaged)
+  for (const e of pEmoji.create) {
+    const png = fs.readFileSync(path.join(__dirname, e.file))
+    await api('POST', `/guilds/${GUILD}/emojis`, { name: e.name, image: `data:image/png;base64,${png.toString('base64')}` })
+    log(`✓ emoji :${e.name}:`)
   }
 
   // ---- 14. permanent invite (reuse if one already exists)
