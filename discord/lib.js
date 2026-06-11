@@ -88,4 +88,37 @@ function rewriteMentions(content, channelId) {
   })
 }
 
-module.exports = { planRoles, planCategories, planChannels, buildOverwrites, planAutomod, rewriteMentions }
+function planEmojis(wanted, live) {
+  const liveBy = byName(live)
+  return { create: wanted.filter(e => !liveBy.has(e.name)) }
+}
+
+function planWebhooks(wanted, live) {
+  const liveBy = byName(live)
+  return { create: wanted.filter(w => !liveBy.has(w.name)) }
+}
+
+// Seeds are reconciled managed messages. Match: bot-authored message whose components
+// JSON contains the `seed:<key>` footer marker; fallback (one-time migration of
+// pre-marker seeds): the OLDEST bot-authored message in the channel (Discord returns
+// newest-first). normalizeComponents comparison decides ok vs patch.
+// NOTE: each seed must use a DISTINCT channel — two unmigrated seeds sharing a channel
+// would both fall back to the same oldest message during legacy migration.
+function planSeeds(seeds, messagesByChannel, botUserId, renderSeed, normalize) {
+  const norm = normalize || require('./templates.js').normalizeComponents
+  return seeds.map(seed => {
+    const msgs = messagesByChannel[seed.channel] || []
+    const mine = msgs.filter(m => m.author?.id === botUserId)
+    // newest-first: if multiple marked messages exist, target the newest (the current post).
+    // The trailing JSON-quote makes the key match exact (seed:rules ≠ seed:rulesv2).
+    const marked = mine.find(m => JSON.stringify(m.components || []).includes(`seed:${seed.key}"`))
+    const target = marked || (mine.length ? mine[mine.length - 1] : null)
+    if (!target) return { key: seed.key, channel: seed.channel, action: 'post' }
+    const want = norm(renderSeed(seed).components)
+    const have = norm(target.components || [])
+    if (JSON.stringify(want) === JSON.stringify(have)) return { key: seed.key, channel: seed.channel, action: 'ok', targetId: target.id }
+    return { key: seed.key, channel: seed.channel, action: 'patch', targetId: target.id, pinned: !!target.pinned }
+  })
+}
+
+module.exports = { planRoles, planCategories, planChannels, buildOverwrites, planAutomod, rewriteMentions, planEmojis, planWebhooks, planSeeds }
