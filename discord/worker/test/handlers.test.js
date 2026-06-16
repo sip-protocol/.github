@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
 import { handleInteraction } from '../src/index.js'
+import worker from '../src/index.js'
 
 const env = { COMMUNITY_ROLE_ID: 'R', DISCORD_GUILD_ID: 'G' }
 const modalSubmit = (fields, roles = []) => ({
@@ -52,4 +53,23 @@ test('grant failure → ephemeral error + modlog', async () => {
   assert.strictEqual(r.data.flags, 1 << 6)
   assert.match(r.data.content, /ping a moderator/)
   assert.strictEqual(logged, true)
+})
+
+const makeReq = (method, headers = {}, body = '{"type":1}') =>
+  new Request('https://worker.test', { method, headers, body: method === 'GET' ? undefined : body })
+
+test('fetch rejects non-POST with 405', async () => {
+  const res = await worker.fetch(makeReq('GET'), {})
+  assert.strictEqual(res.status, 405)
+})
+
+test('fetch rejects missing signature headers with 401', async () => {
+  const res = await worker.fetch(makeReq('POST'), {})
+  assert.strictEqual(res.status, 401)
+})
+
+test('fetch rejects an invalid signature with 401', async () => {
+  const headers = { 'X-Signature-Ed25519': '00', 'X-Signature-Timestamp': '0' }
+  const res = await worker.fetch(makeReq('POST', headers), { DISCORD_PUBLIC_KEY: 'deadbeef' })
+  assert.strictEqual(res.status, 401)
 })
