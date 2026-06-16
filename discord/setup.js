@@ -187,21 +187,28 @@ async function main() {
     warnings.push(`welcome screen: ${e.message}`)
   }
 
-  // ---- 11. onboarding
+  // ---- 11. onboarding (disabled when manifest.onboarding.enabled === false — custom intro gate in use)
   try {
-    await api('PUT', `/guilds/${GUILD}/onboarding`, {
-      prompts: [{
-        id: '0', type: 0, title: manifest.onboarding.prompt.title,
-        single_select: true, required: true, in_onboarding: true,
-        options: manifest.onboarding.prompt.options.map(o => ({
-          title: o.title, description: o.description, emoji_name: o.emoji,
-          role_ids: o.roles.map(roleId), channel_ids: o.channels.map(channelId),
-        })),
-      }],
-      default_channel_ids: manifest.onboarding.default_channels.map(channelId),
-      enabled: true, mode: 0,
-    })
-    log('✓ onboarding')
+    if (manifest.onboarding && manifest.onboarding.enabled === false) {
+      await api('PUT', `/guilds/${GUILD}/onboarding`, {
+        prompts: [], default_channel_ids: [], enabled: false, mode: 0,
+      })
+      log('✓ onboarding disabled (custom intro gate in use)')
+    } else {
+      await api('PUT', `/guilds/${GUILD}/onboarding`, {
+        prompts: [{
+          id: '0', type: 0, title: manifest.onboarding.prompt.title,
+          single_select: true, required: true, in_onboarding: true,
+          options: manifest.onboarding.prompt.options.map(o => ({
+            title: o.title, description: o.description, emoji_name: o.emoji,
+            role_ids: o.roles.map(roleId), channel_ids: o.channels.map(channelId),
+          })),
+        }],
+        default_channel_ids: manifest.onboarding.default_channels.map(channelId),
+        enabled: true, mode: 0,
+      })
+      log('✓ onboarding')
+    }
   } catch (e) {
     warnings.push(`onboarding: ${e.message}`)
   }
