@@ -12,14 +12,15 @@ const GUILD_ID = '999000'
 
 function liveFromManifest() {
   // Synthesize a live state that exactly matches the manifest (for idempotency tests)
-  const roles = manifest.roles.map((r, i) => ({ id: `r${i}`, name: r.name, color: r.color, hoist: r.hoist, managed: false, permissions: r.permissions }))
+  const roles = manifest.roles.map((r, i) => ({ id: `r${i}`, name: r.name, color: r.color, hoist: r.hoist, mentionable: r.mentionable, managed: false, permissions: r.permissions }))
+  const roleId = name => roles.find(r => r.name === name)?.id
   const channels = []
   let cid = 0
   for (const cat of manifest.categories) {
     const catId = `cat${cid++}`
     channels.push({ id: catId, type: 4, name: cat.name, parent_id: null })
     for (const ch of cat.channels) {
-      channels.push({ id: `ch${cid++}`, type: ch.type, name: ch.name, topic: ch.topic, parent_id: catId })
+      channels.push({ id: `ch${cid++}`, type: ch.type, name: ch.name, topic: ch.topic, parent_id: catId, permission_overwrites: buildOverwrites(ch.overwrites, { guildId: GUILD_ID, roleId }) })
     }
   }
   return { roles, channels }
@@ -27,7 +28,7 @@ function liveFromManifest() {
 
 test('planRoles creates all roles on empty live, none on matching live', () => {
   const empty = planRoles(manifest.roles, [])
-  assert.equal(empty.create.length, 4)
+  assert.equal(empty.create.length, 8)
   const live = liveFromManifest()
   const full = planRoles(manifest.roles, live.roles)
   assert.equal(full.create.length, 0)
@@ -45,13 +46,13 @@ test('planRoles updates color drift', () => {
 test('planCategories + planChannels create everything on empty live', () => {
   const cats = planCategories(manifest.categories, [])
   assert.equal(cats.create.length, 5)
-  const chans = planChannels(manifest.categories, [], () => null)
-  assert.equal(chans.create.length, 11)
+  const chans = planChannels(manifest.categories, [], () => null, GUILD_ID)
+  assert.equal(chans.create.length, 12)
 })
 
 test('planChannels is empty on manifest-shaped live (idempotency)', () => {
   const live = liveFromManifest()
-  const chans = planChannels(manifest.categories, live.channels, name => live.roles.find(r => r.name === name)?.id)
+  const chans = planChannels(manifest.categories, live.channels, name => live.roles.find(r => r.name === name)?.id, GUILD_ID)
   assert.equal(chans.create.length, 0)
   assert.equal(chans.update.length, 0)
 })
@@ -60,7 +61,7 @@ test('planChannels flags announcements type drift 0→5 as update', () => {
   const live = liveFromManifest()
   const ann = live.channels.find(c => c.name === 'announcements')
   ann.type = 0
-  const chans = planChannels(manifest.categories, live.channels, () => null)
+  const chans = planChannels(manifest.categories, live.channels, name => live.roles.find(r => r.name === name)?.id, GUILD_ID)
   assert.equal(chans.update.length, 1)
   assert.equal(chans.update[0].patch.type, 5)
 })
@@ -164,4 +165,29 @@ test('planSeeds: marker match is exact — seed:rules does not match a seed:rule
   const plan = planSeeds([seed], { rules: [v2Msg, trueMsg] }, BOT, renderSeed)
   assert.equal(plan[0].action, 'ok')
   assert.equal(plan[0].targetId, 'mOld')
+})
+
+test('planRoles patches permissions + mentionable drift on an existing role', () => {
+  const live = liveFromManifest()
+  const shielded = live.roles.find(r => r.name === 'Shielded')
+  shielded.permissions = '0'   // pre-gate Shielded had no VIEW_CHANNEL
+  shielded.mentionable = true  // drift from manifest (false)
+  const plan = planRoles(manifest.roles, live.roles)
+  const u = plan.update.find(x => x.name === 'Shielded')
+  assert.ok(u, 'Shielded should need an update')
+  assert.equal(u.patch.permissions, '1024')
+  assert.equal(u.patch.mentionable, false)
+})
+
+test('planChannels reconciles missing channel overwrites (additive)', () => {
+  const live = liveFromManifest()
+  const roleId = name => live.roles.find(r => r.name === name)?.id
+  const rules = live.channels.find(c => c.name === 'rules')
+  rules.permission_overwrites = []  // pre-gate #rules had no overwrites
+  const plan = planChannels(manifest.categories, live.channels, roleId, GUILD_ID)
+  const u = plan.update.find(x => x.name === 'rules')
+  assert.ok(u, '#rules should need its @everyone VIEW overwrite')
+  assert.equal(u.overwrites.length, 1)
+  assert.equal(u.overwrites[0].id, GUILD_ID)
+  assert.equal(u.overwrites[0].allow, '1024')
 })

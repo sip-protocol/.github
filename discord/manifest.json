@@ -7,13 +7,17 @@
     "icon_file": "assets/logo-512.png",
     "rules_channel": "rules",
     "public_updates_channel": "mod-log",
-    "everyone_permissions": "311452617793"
+    "everyone_permissions": "311452616769"
   },
   "roles": [
     { "name": "Admin", "color": 16096779, "hoist": true, "mentionable": false, "permissions": "8" },
-    { "name": "Contributor", "color": 9133302, "hoist": true, "mentionable": true, "permissions": "0" },
+    { "name": "Moderator", "color": 15105570, "hoist": true, "mentionable": true, "permissions": "1116825723014" },
+    { "name": "Cipher", "color": 10181046, "hoist": true, "mentionable": true, "permissions": "0" },
+    { "name": "Committer", "color": 9133302, "hoist": true, "mentionable": true, "permissions": "0" },
+    { "name": "Prover", "color": 3447003, "hoist": true, "mentionable": true, "permissions": "0" },
     { "name": "Bounty Hunter", "color": 1357990, "hoist": true, "mentionable": true, "permissions": "0" },
-    { "name": "Community", "color": 9741240, "hoist": false, "mentionable": false, "permissions": "0" }
+    { "name": "Genesis", "color": 16766720, "hoist": true, "mentionable": false, "permissions": "0" },
+    { "name": "Shielded", "color": 9741240, "hoist": false, "mentionable": false, "permissions": "1024" }
   ],
   "cleanup_defaults": {
     "delete_voice_channels": ["General"],
@@ -24,7 +28,8 @@
       "name": "📌 START HERE",
       "overwrites": [{ "role": "@everyone", "deny": "309237647360" }],
       "channels": [
-        { "name": "rules", "type": 0, "topic": "Read + accept to unlock the server. The team will NEVER DM you first." },
+        { "name": "rules", "type": 0, "topic": "Read + accept to unlock the server. The team will NEVER DM you first.", "overwrites": [{ "role": "@everyone", "allow": "1024" }] },
+        { "name": "introductions", "type": 0, "topic": "Introduce yourself to unlock the server — who you are and why you're here. The button posts your intro and grants access.", "overwrites": [{ "role": "@everyone", "allow": "1024" }, { "role": "Shielded", "deny": "1024" }] },
         { "name": "announcements", "type": 5, "topic": "Releases, milestones, bounty launches. Follow to mirror into your own server." },
         { "name": "resources", "type": 0, "topic": "Docs, SDK, app, blog — everything you need to build." }
       ]
@@ -54,7 +59,7 @@
       "channels": [
         { "name": "bot-commands", "type": 0, "topic": "Bot playground. HERALD lands here in v2." },
         { "name": "github-feed", "type": 0, "topic": "Live firehose from github.com/sip-protocol — releases, merged PRs, issues. Read-only.", "overwrites": [{ "role": "@everyone", "deny": "309237647360" }] },
-        { "name": "mod-log", "type": 0, "topic": "AutoMod flags + Discord community notices. Staff only.", "overwrites": [{ "role": "@everyone", "deny": "1024" }] }
+        { "name": "mod-log", "type": 0, "topic": "AutoMod flags + Discord community notices. Staff only.", "overwrites": [{ "role": "@everyone", "deny": "1024" }, { "role": "Shielded", "deny": "1024" }] }
       ]
     }
   ],
@@ -70,25 +75,13 @@
     }
   ],
   "welcome_screen": {
-    "description": "The privacy standard for Web3 — stealth addresses, hidden amounts, viewing keys.",
+    "description": "The privacy standard for Web3 — introduce yourself to unlock the server.",
     "channels": [
-      { "channel": "rules", "description": "Start here — accept to unlock the server", "emoji": "📌" },
-      { "channel": "general", "description": "Say salam 👋 — main chat", "emoji": "💬" },
-      { "channel": "dev-chat", "description": "Get integration help", "emoji": "🔧" },
-      { "channel": "bounties", "description": "Paid work, live soon", "emoji": "🏆" }
+      { "channel": "rules", "description": "Read the rules first", "emoji": "📌" },
+      { "channel": "introductions", "description": "Introduce yourself → instant access", "emoji": "👋" }
     ]
   },
-  "onboarding": {
-    "default_channels": ["rules", "announcements", "resources", "general", "ideas", "dev-chat", "bug-reports", "bounties"],
-    "prompt": {
-      "title": "What brings you to SIP?",
-      "options": [
-        { "title": "Here for bounties", "description": "Paid work on Superteam Earn", "emoji": "🏆", "roles": ["Bounty Hunter"], "channels": ["bounties"] },
-        { "title": "Building with the SDK", "description": "Integrating privacy into my app", "emoji": "🔧", "roles": ["Community"], "channels": ["dev-chat"] },
-        { "title": "Exploring privacy", "description": "Learning what SIP is about", "emoji": "🔒", "roles": ["Community"], "channels": ["general"] }
-      ]
-    }
-  },
+  "onboarding": { "enabled": false },
   "invite": { "channel": "general" },
   "webhooks": [
     { "name": "SIP GitHub", "channel": "github-feed", "env": "DISCORD_GITHUB_WEBHOOK_URL" },
@@ -153,6 +146,15 @@
           { "name": "📖 Technical Deep-Dive", "value": "TBA" },
           { "name": "🐛 Bug Bounty", "value": "TBA" }
         ]
+      }
+    },
+    {
+      "key": "intro-gate", "channel": "introductions", "pin": true,
+      "payload": {
+        "type": "announcement", "channel": "introductions",
+        "title": "Introduce yourself to unlock SIP Protocol 👋",
+        "body": "New here? Tell us who you are and why you're here — and you'll get instant access to the whole server.\n\nNo wallet. No email. Just a hello. Click the button below to introduce yourself.",
+        "buttons": [{ "label": "Introduce yourself", "custom_id": "sip_intro" }]
       }
     }
   ]

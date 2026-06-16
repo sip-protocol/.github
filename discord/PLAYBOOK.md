@@ -46,8 +46,36 @@ GitHub feed (org webhook, no human in the loop); drift alerts (weekly Action →
 
 - One thread per bounty in #bounties for submissions/questions; winners announced in-channel.
 - Pins: ≤5 per channel. #rules + #resources seed posts stay pinned (reconciled).
-- Contributor role is earned (merged PR / real contribution) — never self-assign, never bulk-grant.
+- Committer role is earned (merged PR / real contribution) — never self-assign, never bulk-grant.
 - New channels only via the growth triggers below; structure changes go through manifest.json.
+
+## 4a. Onboarding gate (the intro flow)
+
+New members see only `#rules` + `#introductions` until they introduce themselves. The
+`#introductions` seed card has an **Introduce yourself** button → a 4-field modal
+(handle / who / why / building). On submit, the Cloudflare Worker
+(`discord/worker/`) validates + sanitizes the input, grants `Shielded` (the unlock
+role), and posts a public intro card. Fully automatic — no mod approval.
+
+- Worker source: `discord/worker/` — deploy with `npm run deploy` (wrangler).
+- Endpoint URL is set in the Discord Dev Portal (SIPHER app → Interactions Endpoint URL).
+- Secrets: `DISCORD_BOT_TOKEN`, `DISCORD_PUBLIC_KEY`, `DISCORD_MODLOG_WEBHOOK_URL`
+  (`wrangler secret put`). Vars: `DISCORD_GUILD_ID`, `COMMUNITY_ROLE_ID` (wrangler.toml).
+- Failure (e.g. role hierarchy) → ephemeral "ping a moderator" + a note in `#mod-log`.
+  Fix: ensure the SIPHER integration role sits **above** `Shielded` in the role list.
+
+## 4b. Granting earned tiers
+
+The ladder is `Shielded` (auto) → `Prover` → `Committer` → `Cipher`. All but
+`Shielded` are granted **manually**, never self-assigned (rule below):
+
+- **Prover** — actively building with the SDK / sustained help in `#dev-chat`.
+- **Committer** — merged a PR to any `sip-protocol` repo.
+- **Cipher** — sustained maintainer / deeply trusted (Admin grants).
+- **Genesis** — batch-granted to the first wave of members (one-time, RECTOR's cutoff).
+
+Grant via Server Settings → Members, or `node` against the REST API. Never bulk-grant
+earned tiers; the value is that they're earned.
 
 ## 5. Moderation runbook
 
@@ -63,11 +91,11 @@ Act when the threshold is hit — not before (YAGNI for community ops):
 
 | Trigger | Action |
 |---------|--------|
-| 50 members | Recruit first mod → add Moderator role to manifest.json; open #showcase (COMMUNITY) |
+| 50 members | Recruit first mod → grant the existing `Moderator` role; open #showcase (COMMUNITY) |
 | 100 members | #support forum channel (DEVELOPMENT); monthly dev-call scheduled event |
 | 250 members | Second mod; AutoMod rule audit; locale channels only if non-English chatter is organic |
 | Boost L1 (2) | Animated icon + invite splash (render from assets-src) |
-| Boost L2 (7) | Role icons (Contributor, Bounty Hunter) + server banner — SVG pipeline is ready |
+| Boost L2 (7) | Role icons (Committer, Bounty Hunter) + server banner — SVG pipeline is ready |
 | Boost L3 (14) | Vanity URL attempt |
 
 Thresholds are heuristics — RECTOR tunes them.

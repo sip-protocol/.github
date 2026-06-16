@@ -138,3 +138,33 @@ test('render: cell without note renders name — value only', () => {
   const texts = msg.components[0].components.filter(x => x.type === 10).map(x => x.content)
   assert.ok(texts.some(t => t === '**X** — $1'))
 })
+
+test('validatePayload accepts an interactive (custom_id) button', () => {
+  const p = { type: 'announcement', channel: 'introductions', title: 'Hi', body: 'x'.repeat(20),
+    buttons: [{ label: 'Introduce yourself', custom_id: 'sip_intro' }] }
+  assert.deepStrictEqual(validatePayload(p).errors, [])
+})
+
+test('validatePayload rejects a bad custom_id', () => {
+  const p = { type: 'announcement', channel: 'introductions', title: 'Hi', body: 'x'.repeat(20),
+    buttons: [{ label: 'Go', custom_id: 'Bad ID!' }] }
+  assert.ok(validatePayload(p).errors.some(e => e.includes('custom_id')))
+})
+
+test('validatePayload rejects a button with both url and custom_id', () => {
+  const p = { type: 'announcement', channel: 'introductions', title: 'Hi', body: 'x'.repeat(20),
+    buttons: [{ label: 'Go', custom_id: 'sip_intro', url: 'https://sip-protocol.org' }] }
+  assert.ok(validatePayload(p).errors.some(e => e.includes('both')))
+})
+
+test('render emits a primary custom_id button', () => {
+  const p = { type: 'announcement', channel: 'introductions', title: 'Hi', body: 'x'.repeat(20),
+    buttons: [{ label: 'Introduce yourself', custom_id: 'sip_intro' }] }
+  const row = render(p).components[0].components.find(c => c.type === 1)
+  assert.deepStrictEqual(row.components[0], { type: 2, style: 1, label: 'Introduce yourself', custom_id: 'sip_intro' })
+})
+
+test('normalizeComponents preserves custom_id', () => {
+  const norm = normalizeComponents([{ type: 2, style: 1, label: 'x', custom_id: 'sip_intro' }])
+  assert.strictEqual(norm[0].custom_id, 'sip_intro')
+})

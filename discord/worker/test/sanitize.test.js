@@ -1,0 +1,78 @@
+import { test } from 'node:test'
+import assert from 'node:assert'
+import { validateAndSanitize } from '../src/sanitize.js'
+
+const good = { handle: 'satoshi', who: 'A privacy researcher from Jakarta', why: 'I care about on-chain privacy a lot', building: '' }
+
+test('accepts a valid intro', () => {
+  const r = validateAndSanitize(good)
+  assert.strictEqual(r.ok, true)
+  assert.strictEqual(r.fields.handle, 'satoshi')
+})
+
+test('rejects a missing required field', () => {
+  const r = validateAndSanitize({ ...good, why: '   ' })
+  assert.strictEqual(r.ok, false)
+  assert.match(r.reason, /Why SIP/)
+})
+
+test('rejects too-short input', () => {
+  const r = validateAndSanitize({ ...good, who: 'hi' })
+  assert.strictEqual(r.ok, false)
+  assert.match(r.reason, /too short/)
+})
+
+test('rejects URLs in any field', () => {
+  for (const bad of ['visit https://evil.link', 'join discord.gg/x', 'go to evil.xyz now', 'www.evil.com']) {
+    const r = validateAndSanitize({ ...good, why: `I am here because ${bad} ok` })
+    assert.strictEqual(r.ok, false, bad)
+    assert.match(r.reason, /[Ll]inks/)
+  }
+})
+
+test('rejects drainer phrases', () => {
+  const r = validateAndSanitize({ ...good, who: 'I am here to claim your airdrop friend' })
+  assert.strictEqual(r.ok, false)
+  assert.match(r.reason, /AutoMod/)
+})
+
+test('escapes markdown + mention tokens', () => {
+  const r = validateAndSanitize({ ...good, who: 'I am @everyone and **admin** of #general here ok' })
+  assert.strictEqual(r.ok, true)
+  assert.ok(!r.fields.who.includes('@everyone'))
+  assert.ok(r.fields.who.includes('\\*\\*'))
+})
+
+test('optional building may be empty', () => {
+  const r = validateAndSanitize({ ...good, building: '' })
+  assert.strictEqual(r.ok, true)
+  assert.strictEqual(r.fields.building, '')
+})
+
+test('rejects a URL even in a short field (security check precedes length)', () => {
+  const r = validateAndSanitize({ ...good, why: 'see evil.xyz' }) // 12 chars (below min 20) but contains a URL
+  assert.strictEqual(r.ok, false)
+  assert.match(r.reason, /[Ll]inks/)
+})
+
+test('rejects bare discord.gg / t.me without a path', () => {
+  for (const bad of ['come to discord.gg now please join', 'ping me on t.me ok here please join']) {
+    const r = validateAndSanitize({ ...good, why: bad })
+    assert.strictEqual(r.ok, false, bad)
+    assert.match(r.reason, /[Ll]inks/)
+  }
+})
+
+test('rejects scam/link TLDs (.ru / .to / .ly)', () => {
+  for (const bad of ['check my site evil.ru for more info', 'go to short.ly link now please', 'visit my page x.to today okay']) {
+    const r = validateAndSanitize({ ...good, why: bad })
+    assert.strictEqual(r.ok, false, bad)
+    assert.match(r.reason, /[Ll]inks/)
+  }
+})
+
+test('escapes square brackets to neutralize masked links', () => {
+  const r = validateAndSanitize({ ...good, who: 'I am here [click me] to learn about privacy stuff' })
+  assert.strictEqual(r.ok, true)
+  assert.ok(r.fields.who.includes('\\[') && r.fields.who.includes('\\]'))
+})
