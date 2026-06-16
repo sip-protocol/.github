@@ -5,8 +5,8 @@ compatibility_flags = ["nodejs_compat"]
 
 # Non-secret config. Fill COMMUNITY_ROLE_ID from `setup.js` output (it prints role ids).
 [vars]
-DISCORD_GUILD_ID = "REPLACE_WITH_GUILD_ID"
-COMMUNITY_ROLE_ID = "REPLACE_WITH_COMMUNITY_ROLE_ID"
+DISCORD_GUILD_ID = "1514423148483711096"
+COMMUNITY_ROLE_ID = "1514425306847645718"
 
 # Secrets (NOT here — set with `wrangler secret put`):
 #   DISCORD_BOT_TOKEN, DISCORD_PUBLIC_KEY, DISCORD_MODLOG_WEBHOOK_URL
