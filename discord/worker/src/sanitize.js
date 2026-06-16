@@ -15,7 +15,7 @@ const DRAINER_PATTERNS = [
   'dm me to claim', 'first come first serve',
 ]
 
-const URL_RE = /(https?:\/\/|www\.|discord\.gg\/|t\.me\/|[a-z0-9-]+\.(xyz|io|com|net|org|app|fi|finance|link|click|gift|claim)\b)/i
+const URL_RE = /(https?:\/\/|www\.|discord\.gg\b|t\.me\b|[a-z0-9-]+\.(xyz|io|com|net|org|app|co|fi|finance|link|click|gift|claim|ru|to|ly|gg|cc|vip|top)\b)/i
 
 function escapeMarkdown(s) {
   return s

@@ -54,3 +54,19 @@ test('rejects a URL even in a short field (security check precedes length)', () 
   assert.strictEqual(r.ok, false)
   assert.match(r.reason, /[Ll]inks/)
 })
+
+test('rejects bare discord.gg / t.me without a path', () => {
+  for (const bad of ['come to discord.gg now please join', 'ping me on t.me ok here please join']) {
+    const r = validateAndSanitize({ ...good, why: bad })
+    assert.strictEqual(r.ok, false, bad)
+    assert.match(r.reason, /[Ll]inks/)
+  }
+})
+
+test('rejects scam/link TLDs (.ru / .to / .ly)', () => {
+  for (const bad of ['check my site evil.ru for more info', 'go to short.ly link now please', 'visit my page x.to today okay']) {
+    const r = validateAndSanitize({ ...good, why: bad })
+    assert.strictEqual(r.ok, false, bad)
+    assert.match(r.reason, /[Ll]inks/)
+  }
+})
