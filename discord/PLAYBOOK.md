@@ -46,7 +46,7 @@ GitHub feed (org webhook, no human in the loop); drift alerts (weekly Action →
 
 - One thread per bounty in #bounties for submissions/questions; winners announced in-channel.
 - Pins: ≤5 per channel. #rules + #resources seed posts stay pinned (reconciled).
-- Contributor role is earned (merged PR / real contribution) — never self-assign, never bulk-grant.
+- Committer role is earned (merged PR / real contribution) — never self-assign, never bulk-grant.
 - New channels only via the growth triggers below; structure changes go through manifest.json.
 
 ## 4a. Onboarding gate (the intro flow)
@@ -66,13 +66,13 @@ role), and posts a public intro card. Fully automatic — no mod approval.
 
 ## 4b. Granting earned tiers
 
-The ladder is `Shielded` (auto) → `Builder` → `Contributor` → `Core`. All but
+The ladder is `Shielded` (auto) → `Prover` → `Committer` → `Cipher`. All but
 `Shielded` are granted **manually**, never self-assigned (rule below):
 
-- **Builder** — actively building with the SDK / sustained help in `#dev-chat`.
-- **Contributor** — merged a PR to any `sip-protocol` repo.
-- **Core** — sustained maintainer / deeply trusted (Admin grants).
-- **OG** — batch-granted to the first wave of members (one-time, RECTOR's cutoff).
+- **Prover** — actively building with the SDK / sustained help in `#dev-chat`.
+- **Committer** — merged a PR to any `sip-protocol` repo.
+- **Cipher** — sustained maintainer / deeply trusted (Admin grants).
+- **Genesis** — batch-granted to the first wave of members (one-time, RECTOR's cutoff).
 
 Grant via Server Settings → Members, or `node` against the REST API. Never bulk-grant
 earned tiers; the value is that they're earned.
@@ -95,7 +95,7 @@ Act when the threshold is hit — not before (YAGNI for community ops):
 | 100 members | #support forum channel (DEVELOPMENT); monthly dev-call scheduled event |
 | 250 members | Second mod; AutoMod rule audit; locale channels only if non-English chatter is organic |
 | Boost L1 (2) | Animated icon + invite splash (render from assets-src) |
-| Boost L2 (7) | Role icons (Contributor, Bounty Hunter) + server banner — SVG pipeline is ready |
+| Boost L2 (7) | Role icons (Committer, Bounty Hunter) + server banner — SVG pipeline is ready |
 | Boost L3 (14) | Vanity URL attempt |
 
 Thresholds are heuristics — RECTOR tunes them.

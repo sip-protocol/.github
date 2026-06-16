@@ -12,11 +12,11 @@
   "roles": [
     { "name": "Admin", "color": 16096779, "hoist": true, "mentionable": false, "permissions": "8" },
     { "name": "Moderator", "color": 15105570, "hoist": true, "mentionable": true, "permissions": "1116825723014" },
-    { "name": "Core", "color": 10181046, "hoist": true, "mentionable": true, "permissions": "0" },
-    { "name": "Contributor", "color": 9133302, "hoist": true, "mentionable": true, "permissions": "0" },
-    { "name": "Builder", "color": 3447003, "hoist": true, "mentionable": true, "permissions": "0" },
+    { "name": "Cipher", "color": 10181046, "hoist": true, "mentionable": true, "permissions": "0" },
+    { "name": "Committer", "color": 9133302, "hoist": true, "mentionable": true, "permissions": "0" },
+    { "name": "Prover", "color": 3447003, "hoist": true, "mentionable": true, "permissions": "0" },
     { "name": "Bounty Hunter", "color": 1357990, "hoist": true, "mentionable": true, "permissions": "0" },
-    { "name": "OG", "color": 16766720, "hoist": true, "mentionable": false, "permissions": "0" },
+    { "name": "Genesis", "color": 16766720, "hoist": true, "mentionable": false, "permissions": "0" },
     { "name": "Shielded", "color": 9741240, "hoist": false, "mentionable": false, "permissions": "1024" }
   ],
   "cleanup_defaults": {
