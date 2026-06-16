@@ -67,7 +67,13 @@ function validatePayload(p) {
   if (cardImages.length > LIMITS.cardImages) errors.push(`cardImages exceeds ${LIMITS.cardImages}`)
   if (buttons.length > LIMITS.buttons) errors.push(`buttons exceeds ${LIMITS.buttons} (one action row)`)
   for (const b of buttons) {
-    if (!b.label || !b.url) { errors.push('every button needs label + url'); continue }
+    if (!b.label) { errors.push('every button needs a label'); continue }
+    if (b.custom_id) {
+      if (b.url) errors.push('button cannot have both custom_id and url')
+      if (!/^[a-z0-9_]+$/.test(b.custom_id)) errors.push(`button custom_id must match ^[a-z0-9_]+$ (got ${b.custom_id})`)
+      continue
+    }
+    if (!b.url) { errors.push('every button needs url or custom_id'); continue }
     const e = checkUrl(b.url); if (e) errors.push(`${e} (allowlist: ${[...BUTTON_HOSTS].join(', ')})`)
   }
   if (cells.length > LIMITS.cells) errors.push(`cells exceeds ${LIMITS.cells}`)
@@ -94,7 +100,11 @@ function render(p, opts = {}) {
     inner.push({ type: 12, items: p.cardImages.map(url => ({ media: { url } })) })
   }
   if (p.buttons?.length) {
-    inner.push({ type: 1, components: p.buttons.map(b => ({ type: 2, style: 5, label: b.label, url: b.url })) })
+    inner.push({ type: 1, components: p.buttons.map(b => (
+      b.custom_id
+        ? { type: 2, style: b.style ?? 1, label: b.label, custom_id: b.custom_id }
+        : { type: 2, style: 5, label: b.label, url: b.url }
+    )) })
   }
   inner.push(sep())
   const marker = opts.seedKey ? ` · seed:${opts.seedKey}` : ''
@@ -114,6 +124,7 @@ function normalizeComponents(components) {
     if (c.style !== undefined) out.style = c.style
     if (c.label !== undefined) out.label = c.label
     if (c.url !== undefined) out.url = c.url
+    if (c.custom_id !== undefined) out.custom_id = c.custom_id
     if (c.items) out.items = c.items.map(i => ({ media: { url: i.media.url } }))
     if (c.components) out.components = c.components.map(norm)
     return out
