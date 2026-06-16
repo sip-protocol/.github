@@ -3,7 +3,7 @@ import assert from 'node:assert'
 import { handleInteraction } from '../src/index.js'
 import worker from '../src/index.js'
 
-const env = { COMMUNITY_ROLE_ID: 'R', DISCORD_GUILD_ID: 'G' }
+const env = { COMMUNITY_ROLE_ID: 'R', DISCORD_GUILD_ID: 'G', INTRO_CARD_CHANNEL_ID: 'GEN' }
 const modalSubmit = (fields, roles = []) => ({
   type: 5,
   data: { custom_id: 'sip_intro_modal', components: Object.entries(fields).map(([custom_id, value]) => ({ components: [{ custom_id, value }] })) },
@@ -20,13 +20,32 @@ test('intro button → modal', async () => {
   assert.strictEqual(r.type, 9)
 })
 
-test('valid modal submit grants role and returns the intro card', async () => {
-  const calls = []
-  const deps = { grantRole: async (...a) => { calls.push(a); return { ok: true, status: 204 } }, logModlog: async () => {} }
+test('valid modal submit grants role, posts the card to the card channel, and acks ephemerally', async () => {
+  const calls = []; const posts = []
+  const deps = {
+    grantRole: async (...a) => { calls.push(a); return { ok: true, status: 204 } },
+    logModlog: async () => {},
+    postMessage: async (e, ch, body) => { posts.push({ ch, body }); return { ok: true, status: 200 } },
+  }
   const r = await handleInteraction(modalSubmit(goodFields), env, deps)
-  assert.strictEqual(r.type, 4)
-  assert.strictEqual(r.data.flags, 1 << 15) // public CV2 card
+  assert.strictEqual(r.data.flags, 1 << 6) // ephemeral ack (not the inline card)
+  assert.match(r.data.content, /You're in/)
   assert.deepStrictEqual(calls[0], [env, 'U', 'R'])
+  assert.strictEqual(posts[0].ch, 'GEN')           // card posted to #general
+  assert.strictEqual(posts[0].body.flags, 1 << 15) // CV2 card body
+})
+
+test('card-post failure still unlocks the user (ephemeral success + modlog note)', async () => {
+  let logged = false
+  const deps = {
+    grantRole: async () => ({ ok: true, status: 204 }),
+    logModlog: async () => { logged = true },
+    postMessage: async () => ({ ok: false, status: 500 }),
+  }
+  const r = await handleInteraction(modalSubmit(goodFields), env, deps)
+  assert.strictEqual(r.data.flags, 1 << 6) // still ephemeral success
+  assert.match(r.data.content, /You're in/)
+  assert.strictEqual(logged, true)
 })
 
 test('already-Community submit is a no-op (ephemeral, no grant)', async () => {

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
-import { grantRole, logModlog } from '../src/discord.js'
+import { grantRole, logModlog, postMessage } from '../src/discord.js'
 
 const env = { DISCORD_GUILD_ID: 'G', DISCORD_BOT_TOKEN: 'tok', DISCORD_MODLOG_WEBHOOK_URL: 'https://hook' }
 
@@ -37,4 +37,19 @@ test('grantRole returns { ok:false, status:0 } when fetch throws', async () => {
   globalThis.fetch = async () => { throw new Error('network down') }
   const r = await grantRole(env, 'U', 'R')
   assert.deepStrictEqual(r, { ok: false, status: 0 })
+})
+
+test('postMessage POSTs to the channel-messages route with the bot token', async () => {
+  let call
+  globalThis.fetch = async (url, opts) => { call = { url, opts }; return { ok: true, status: 200 } }
+  const r = await postMessage(env, 'C', { content: 'hi' })
+  assert.strictEqual(r.ok, true)
+  assert.strictEqual(call.url, 'https://discord.com/api/v10/channels/C/messages')
+  assert.strictEqual(call.opts.method, 'POST')
+  assert.match(call.opts.headers.Authorization, /^Bot tok$/)
+})
+
+test('postMessage never throws on a network error', async () => {
+  globalThis.fetch = async () => { throw new Error('down') }
+  assert.deepStrictEqual(await postMessage(env, 'C', {}), { ok: false, status: 0 })
 })

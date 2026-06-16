@@ -2,12 +2,12 @@
 import { verifyKey } from 'discord-interactions'
 import { validateAndSanitize } from './sanitize.js'
 import { buildModal, buildIntroCard, ephemeral } from './render-intro.js'
-import { grantRole, logModlog } from './discord.js'
+import { grantRole, logModlog, postMessage } from './discord.js'
 
 const PONG = { type: 1 }
 
 // Router. Side effects go through `deps` for testability.
-export async function handleInteraction(interaction, env, deps = { grantRole, logModlog }) {
+export async function handleInteraction(interaction, env, deps = { grantRole, logModlog, postMessage }) {
   if (interaction.type === 1) return PONG // PING
 
   if (interaction.type === 3 && interaction.data?.custom_id === 'sip_intro') {
@@ -34,7 +34,14 @@ export async function handleInteraction(interaction, env, deps = { grantRole, lo
       await deps.logModlog(env, `⚠️ intro-gate: failed to grant Community to <@${userId}> (status ${grant.status})`)
       return ephemeral("Couldn't unlock automatically — please ping a moderator.")
     }
-    return buildIntroCard(result.fields, userId)
+    // The user is in. Post the public welcome card to the configured channel (e.g. #general) via the
+    // bot — NOT inline — so #introductions stays a clean, single-button gate. Best-effort: the unlock
+    // already succeeded, so a card-post failure must not fail the interaction.
+    const posted = await deps.postMessage(env, env.INTRO_CARD_CHANNEL_ID, buildIntroCard(result.fields, userId).data)
+    if (!posted.ok) {
+      await deps.logModlog(env, `⚠️ intro-gate: granted Community to <@${userId}> but failed to post the welcome card (status ${posted.status})`)
+    }
+    return ephemeral(`✅ You're in! Welcome — come say hi in <#${env.INTRO_CARD_CHANNEL_ID}> 👋`)
   }
 
   return ephemeral('Unsupported interaction.')

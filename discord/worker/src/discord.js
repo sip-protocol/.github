@@ -18,6 +18,20 @@ export async function grantRole(env, userId, roleId) {
   }
 }
 
+// Post a message (e.g. the public welcome card) to a channel as the bot. Best-effort; never throws.
+export async function postMessage(env, channelId, body) {
+  try {
+    const res = await fetch(`${API}/channels/${channelId}/messages`, {
+      method: 'POST',
+      headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    return { ok: res.ok, status: res.status }
+  } catch {
+    return { ok: false, status: 0 }
+  }
+}
+
 // Best-effort note to #mod-log via the Ops webhook. Never throws.
 export async function logModlog(env, content) {
   if (!env.DISCORD_MODLOG_WEBHOOK_URL) return

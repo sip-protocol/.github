@@ -29,7 +29,7 @@
       "overwrites": [{ "role": "@everyone", "deny": "309237647360" }],
       "channels": [
         { "name": "rules", "type": 0, "topic": "Read + accept to unlock the server. The team will NEVER DM you first.", "overwrites": [{ "role": "@everyone", "allow": "1024" }] },
-        { "name": "introductions", "type": 0, "topic": "Introduce yourself to unlock the server — who you are and why you're here. The button posts your intro and grants access.", "overwrites": [{ "role": "@everyone", "allow": "1024" }] },
+        { "name": "introductions", "type": 0, "topic": "Introduce yourself to unlock the server — who you are and why you're here. The button posts your intro and grants access.", "overwrites": [{ "role": "@everyone", "allow": "1024" }, { "role": "Community", "deny": "1024" }] },
         { "name": "announcements", "type": 5, "topic": "Releases, milestones, bounty launches. Follow to mirror into your own server." },
         { "name": "resources", "type": 0, "topic": "Docs, SDK, app, blog — everything you need to build." }
       ]
