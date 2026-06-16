@@ -16,6 +16,8 @@ function planRoles(wanted, live) {
       const patch = {}
       if (cur.color !== r.color) patch.color = r.color
       if (cur.hoist !== r.hoist) patch.hoist = r.hoist
+      if (cur.mentionable !== r.mentionable) patch.mentionable = r.mentionable
+      if ((cur.permissions || '0') !== r.permissions) patch.permissions = r.permissions
       if (Object.keys(patch).length) update.push({ id: cur.id, name: r.name, patch })
     }
   }
@@ -37,7 +39,7 @@ function buildOverwrites(overwrites, ids) {
   }))
 }
 
-function planChannels(categories, liveChannels, roleId) {
+function planChannels(categories, liveChannels, roleId, guildId) {
   const liveBy = byName(liveChannels.filter(c => c.type !== 4))
   const liveCats = byName(liveChannels.filter(c => c.type === 4))
   const create = []
@@ -54,7 +56,16 @@ function planChannels(categories, liveChannels, roleId) {
       if ((cur.topic || '') !== ch.topic) patch.topic = ch.topic
       const wantCat = liveCats.get(cat.name)
       if (wantCat && cur.parent_id !== wantCat.id) patch.parent_id = wantCat.id
-      if (Object.keys(patch).length) update.push({ id: cur.id, name: ch.name, patch })
+      // Reconcile the manifest-declared channel overwrites (additive: PUT the ones missing or
+      // changed on the live channel; never delete live overwrites the manifest omits, so we
+      // don't clobber the bot's or a moderator's manual permissions).
+      const wantOw = buildOverwrites(ch.overwrites, { guildId, roleId })
+      const liveOw = cur.permission_overwrites || []
+      const owDrift = wantOw.filter(w => {
+        const l = liveOw.find(o => String(o.id) === String(w.id))
+        return !l || String(l.allow) !== w.allow || String(l.deny) !== w.deny
+      })
+      if (Object.keys(patch).length || owDrift.length) update.push({ id: cur.id, name: ch.name, patch, overwrites: owDrift })
     }
   }
   return { create, update }

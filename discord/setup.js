@@ -61,7 +61,7 @@ async function main() {
   // ---- compute plan
   const pRoles = planRoles(manifest.roles, roles)
   const pCats = planCategories(manifest.categories, channels)
-  const pChans = planChannels(manifest.categories, channels, roleId)
+  const pChans = planChannels(manifest.categories, channels, roleId, GUILD)
   const ids = { guildId: GUILD, roleId, channelId }
   const pAuto = planAutomod(manifest.automod, automodLive, { channelId, roleId })
   const everyoneLive = roles.find(r => r.id === GUILD)
@@ -74,7 +74,7 @@ async function main() {
   pRoles.create.forEach(r => log(`  + role ${r.name}`))
   pCats.create.forEach(c => log(`  + category ${c.name}`))
   pChans.create.forEach(c => log(`  + channel #${c.spec.name} (${c.category})`))
-  pChans.update.forEach(c => log(`  ~ channel #${c.name} ${JSON.stringify(c.patch)}`))
+  pChans.update.forEach(c => log(`  ~ channel #${c.name} ${JSON.stringify(c.patch)}${c.overwrites?.length ? ` +${c.overwrites.length} overwrite(s)` : ''}`))
   pAuto.create.forEach(r => log(`  + automod ${r.name}`))
   log(`       seeds ${pSeeds.map(s => `${s.key}:${s.action}`).join(' ')} · emojis +${pEmoji.create.length} · webhooks +${pHooks.create.length}`)
   if (DRY) { log('\n--plan: no changes applied.'); return }
@@ -96,7 +96,7 @@ async function main() {
   channels = await api('GET', `/guilds/${GUILD}/channels`)
 
   // ---- 4. channels (create as type 0; announcement upgrade happens post-COMMUNITY)
-  for (const c of planChannels(manifest.categories, channels, roleId).create) {
+  for (const c of planChannels(manifest.categories, channels, roleId, GUILD).create) {
     const payload = {
       name: c.spec.name,
       type: 0,
@@ -144,9 +144,12 @@ async function main() {
   }
 
   // ---- 7. drifted channels (announcements → type 5, topics, parents)
-  for (const u of planChannels(manifest.categories, channels, roleId).update) {
-    await api('PATCH', `/channels/${u.id}`, u.patch)
-    log(`✓ channel ~#${u.name} ${JSON.stringify(u.patch)}`)
+  for (const u of planChannels(manifest.categories, channels, roleId, GUILD).update) {
+    if (Object.keys(u.patch).length) await api('PATCH', `/channels/${u.id}`, u.patch)
+    for (const ow of (u.overwrites || [])) {
+      await api('PUT', `/channels/${u.id}/permissions/${ow.id}`, { type: ow.type, allow: ow.allow, deny: ow.deny })
+    }
+    log(`✓ channel ~#${u.name} ${JSON.stringify(u.patch)}${u.overwrites?.length ? ` +${u.overwrites.length} overwrite(s)` : ''}`)
   }
 
   // ---- 8. icon
