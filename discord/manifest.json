@@ -7,7 +7,7 @@
     "icon_file": "assets/logo-512.png",
     "rules_channel": "rules",
     "public_updates_channel": "mod-log",
-    "everyone_permissions": "311452617793"
+    "everyone_permissions": "311452616769"
   },
   "roles": [
     { "name": "Admin", "color": 16096779, "hoist": true, "mentionable": false, "permissions": "8" },
@@ -28,7 +28,8 @@
       "name": "📌 START HERE",
       "overwrites": [{ "role": "@everyone", "deny": "309237647360" }],
       "channels": [
-        { "name": "rules", "type": 0, "topic": "Read + accept to unlock the server. The team will NEVER DM you first." },
+        { "name": "rules", "type": 0, "topic": "Read + accept to unlock the server. The team will NEVER DM you first.", "overwrites": [{ "role": "@everyone", "allow": "1024" }] },
+        { "name": "introductions", "type": 0, "topic": "Introduce yourself to unlock the server — who you are and why you're here. The button posts your intro and grants access.", "overwrites": [{ "role": "@everyone", "allow": "1024" }] },
         { "name": "announcements", "type": 5, "topic": "Releases, milestones, bounty launches. Follow to mirror into your own server." },
         { "name": "resources", "type": 0, "topic": "Docs, SDK, app, blog — everything you need to build." }
       ]
@@ -58,7 +59,7 @@
       "channels": [
         { "name": "bot-commands", "type": 0, "topic": "Bot playground. HERALD lands here in v2." },
         { "name": "github-feed", "type": 0, "topic": "Live firehose from github.com/sip-protocol — releases, merged PRs, issues. Read-only.", "overwrites": [{ "role": "@everyone", "deny": "309237647360" }] },
-        { "name": "mod-log", "type": 0, "topic": "AutoMod flags + Discord community notices. Staff only.", "overwrites": [{ "role": "@everyone", "deny": "1024" }] }
+        { "name": "mod-log", "type": 0, "topic": "AutoMod flags + Discord community notices. Staff only.", "overwrites": [{ "role": "@everyone", "deny": "1024" }, { "role": "Community", "deny": "1024" }] }
       ]
     }
   ],
