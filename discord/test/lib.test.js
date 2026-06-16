@@ -27,7 +27,7 @@ function liveFromManifest() {
 
 test('planRoles creates all roles on empty live, none on matching live', () => {
   const empty = planRoles(manifest.roles, [])
-  assert.equal(empty.create.length, 4)
+  assert.equal(empty.create.length, 8)
   const live = liveFromManifest()
   const full = planRoles(manifest.roles, live.roles)
   assert.equal(full.create.length, 0)
