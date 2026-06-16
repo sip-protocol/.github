@@ -73,3 +73,12 @@ test('fetch rejects an invalid signature with 401', async () => {
   const res = await worker.fetch(makeReq('POST', headers), { DISCORD_PUBLIC_KEY: 'deadbeef' })
   assert.strictEqual(res.status, 401)
 })
+
+test('modal submit with no user id → ephemeral, no grant', async () => {
+  let granted = false
+  const deps = { grantRole: async () => { granted = true; return { ok: true, status: 204 } }, logModlog: async () => {} }
+  const submit = { type: 5, data: { custom_id: 'sip_intro_modal', components: [] }, member: { roles: [] } }
+  const r = await handleInteraction(submit, env, deps)
+  assert.strictEqual(r.data.flags, 1 << 6) // ephemeral
+  assert.strictEqual(granted, false)
+})

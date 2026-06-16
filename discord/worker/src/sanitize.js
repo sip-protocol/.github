@@ -19,7 +19,7 @@ const URL_RE = /(https?:\/\/|www\.|discord\.gg\b|t\.me\b|[a-z0-9-]+\.(xyz|io|com
 
 function escapeMarkdown(s) {
   return s
-    .replace(/[\\`*_~|>#-]/g, '\\$&')
+    .replace(/[\\`*_~|>#\[\]-]/g, '\\$&')
     .replace(/@/g, '@​')            // break @everyone/@here/@user
     .replace(/<(@|#|@&)/g, '<​$1')  // break channel/role/user component mentions
 }

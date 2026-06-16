@@ -70,3 +70,9 @@ test('rejects scam/link TLDs (.ru / .to / .ly)', () => {
     assert.match(r.reason, /[Ll]inks/)
   }
 })
+
+test('escapes square brackets to neutralize masked links', () => {
+  const r = validateAndSanitize({ ...good, who: 'I am here [click me] to learn about privacy stuff' })
+  assert.strictEqual(r.ok, true)
+  assert.ok(r.fields.who.includes('\\[') && r.fields.who.includes('\\]'))
+})

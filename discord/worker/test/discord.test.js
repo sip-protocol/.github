@@ -32,3 +32,9 @@ test('logModlog is a no-op without a webhook url', async () => {
   globalThis.fetch = async () => { throw new Error('should not be called') }
   await logModlog({ ...env, DISCORD_MODLOG_WEBHOOK_URL: undefined }, 'x') // must not throw
 })
+
+test('grantRole returns { ok:false, status:0 } when fetch throws', async () => {
+  globalThis.fetch = async () => { throw new Error('network down') }
+  const r = await grantRole(env, 'U', 'R')
+  assert.deepStrictEqual(r, { ok: false, status: 0 })
+})

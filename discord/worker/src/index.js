@@ -20,6 +20,7 @@ export async function handleInteraction(interaction, env, deps = { grantRole, lo
     if (member?.roles?.includes(env.COMMUNITY_ROLE_ID)) {
       return ephemeral("You're already in 🎉 — welcome back.")
     }
+    if (!userId) return ephemeral("Couldn't read your Discord account — please try again.")
     const fields = {}
     for (const r of interaction.data.components ?? []) {
       const c = r.components?.[0]
