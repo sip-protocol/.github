@@ -48,3 +48,9 @@ test('optional building may be empty', () => {
   assert.strictEqual(r.ok, true)
   assert.strictEqual(r.fields.building, '')
 })
+
+test('rejects a URL even in a short field (security check precedes length)', () => {
+  const r = validateAndSanitize({ ...good, why: 'see evil.xyz' }) // 12 chars (below min 20) but contains a URL
+  assert.strictEqual(r.ok, false)
+  assert.match(r.reason, /[Ll]inks/)
+})

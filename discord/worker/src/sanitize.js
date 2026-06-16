@@ -35,12 +35,14 @@ export function validateAndSanitize(fields) {
       out[key] = ''
       continue
     }
-    if (trimmed.length < rule.min) return { ok: false, reason: `${rule.label} is too short (min ${rule.min}).` }
-    if (trimmed.length > rule.max) return { ok: false, reason: `${rule.label} is too long (max ${rule.max}).` }
+    // Security checks take precedence over length: a link or drainer phrase is a hard
+    // rejection regardless of field length, and the user gets the accurate reason.
     if (URL_RE.test(trimmed)) return { ok: false, reason: `Links aren't allowed in your intro (${rule.label}).` }
     if (DRAINER_PATTERNS.some(p => trimmed.toLowerCase().includes(p))) {
       return { ok: false, reason: 'Your intro was blocked by SIP AutoMod. The team never DMs first.' }
     }
+    if (trimmed.length < rule.min) return { ok: false, reason: `${rule.label} is too short (min ${rule.min}).` }
+    if (trimmed.length > rule.max) return { ok: false, reason: `${rule.label} is too long (max ${rule.max}).` }
     out[key] = escapeMarkdown(trimmed)
   }
   return { ok: true, fields: out }
