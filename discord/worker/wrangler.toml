@@ -6,6 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 # Non-secret config. Fill COMMUNITY_ROLE_ID from `setup.js` output (it prints role ids).
 [vars]
 DISCORD_GUILD_ID = "1514423148483711096"
+# Verified-member role (displayed as "Shielded") — ID is stable across renames, so the var name stays.
 COMMUNITY_ROLE_ID = "1514425306847645718"
 INTRO_CARD_CHANNEL_ID = "1514423149251264776"
 

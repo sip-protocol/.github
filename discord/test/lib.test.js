@@ -169,12 +169,12 @@ test('planSeeds: marker match is exact — seed:rules does not match a seed:rule
 
 test('planRoles patches permissions + mentionable drift on an existing role', () => {
   const live = liveFromManifest()
-  const community = live.roles.find(r => r.name === 'Community')
-  community.permissions = '0'   // pre-gate Community had no VIEW_CHANNEL
-  community.mentionable = true  // drift from manifest (false)
+  const shielded = live.roles.find(r => r.name === 'Shielded')
+  shielded.permissions = '0'   // pre-gate Shielded had no VIEW_CHANNEL
+  shielded.mentionable = true  // drift from manifest (false)
   const plan = planRoles(manifest.roles, live.roles)
-  const u = plan.update.find(x => x.name === 'Community')
-  assert.ok(u, 'Community should need an update')
+  const u = plan.update.find(x => x.name === 'Shielded')
+  assert.ok(u, 'Shielded should need an update')
   assert.equal(u.patch.permissions, '1024')
   assert.equal(u.patch.mentionable, false)
 })

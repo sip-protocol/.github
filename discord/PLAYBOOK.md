@@ -54,7 +54,7 @@ GitHub feed (org webhook, no human in the loop); drift alerts (weekly Action →
 New members see only `#rules` + `#introductions` until they introduce themselves. The
 `#introductions` seed card has an **Introduce yourself** button → a 4-field modal
 (handle / who / why / building). On submit, the Cloudflare Worker
-(`discord/worker/`) validates + sanitizes the input, grants `Community` (the unlock
+(`discord/worker/`) validates + sanitizes the input, grants `Shielded` (the unlock
 role), and posts a public intro card. Fully automatic — no mod approval.
 
 - Worker source: `discord/worker/` — deploy with `npm run deploy` (wrangler).
@@ -62,12 +62,12 @@ role), and posts a public intro card. Fully automatic — no mod approval.
 - Secrets: `DISCORD_BOT_TOKEN`, `DISCORD_PUBLIC_KEY`, `DISCORD_MODLOG_WEBHOOK_URL`
   (`wrangler secret put`). Vars: `DISCORD_GUILD_ID`, `COMMUNITY_ROLE_ID` (wrangler.toml).
 - Failure (e.g. role hierarchy) → ephemeral "ping a moderator" + a note in `#mod-log`.
-  Fix: ensure the SIPHER integration role sits **above** `Community` in the role list.
+  Fix: ensure the SIPHER integration role sits **above** `Shielded` in the role list.
 
 ## 4b. Granting earned tiers
 
-The ladder is `Community` (auto) → `Builder` → `Contributor` → `Core`. All but
-`Community` are granted **manually**, never self-assigned (rule below):
+The ladder is `Shielded` (auto) → `Builder` → `Contributor` → `Core`. All but
+`Shielded` are granted **manually**, never self-assigned (rule below):
 
 - **Builder** — actively building with the SDK / sustained help in `#dev-chat`.
 - **Contributor** — merged a PR to any `sip-protocol` repo.
