@@ -4,7 +4,7 @@
   "description": "SIP Protocol Discord infra-as-code toolkit",
   "engines": { "node": ">=18" },
   "scripts": {
-    "test": "node --test",
+    "test": "node --test test/*.test.js",
     "render": "node render.js"
   },
   "devDependencies": {
