@@ -14,6 +14,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
+      - name: Install worker deps
+        working-directory: discord/worker
+        run: npm ci
       - name: Unit tests
         working-directory: discord
         run: node --test
